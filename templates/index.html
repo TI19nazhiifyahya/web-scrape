@@ -1,0 +1,39 @@
+            <h1>Hallo</h1>
+            {% if Buku %}
+                <table>
+                    <tr>
+                        <th>Cover</th>
+                        <th>Title</th>
+                        <th>Description</th>
+                        <th>Author</th>
+                        <th>Publisher</th>
+                        <th>Publication Date</th>
+                        <th>Genres</th>
+                        <th>Language</th>
+                        <th>Pages</th>
+                        <th>Compatibility</th>
+                        <th>Price</th>
+                        <th>Rating</th>
+                        <th>Total Ratings</th>
+                    </tr>
+                    {% for e in Buku %}
+                    <tr>
+                        <td>{{ e.cover }}</td>
+                        <td>{{ e.title }}</td>
+                        <td>{{ e.description }}</td>
+                        <td>{{ e.author }}</td>
+                        <td>{{ e.publisher }}</td>
+                        <td>{{ e.publication_date }}</td>
+                        <td>{{ e.genres }}</td>
+                        <td>{{ e.language }}</td>
+                        <td>{{ e.pages }}</td>
+                        <td>{{ e.compatibility }}</td>
+                        <td>{{ e.price }}</td>
+                        <td>{{ e.rating }}</td>
+                        <td>{{ e.total_rating }}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            {% endif %}
+
+ 

@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>{% block title %}List Buku{% endblock title %}</h1>
+
+<div class="row">
+    {% for i in range(0, 10) %}
+    <div class="col-lg-4">
+        <div style="width:50px;height:80px;border:1px solid black;margin:10px;">
+            Buku{{i}}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+
+{% endblock content %}
