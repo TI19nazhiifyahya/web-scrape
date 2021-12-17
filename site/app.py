@@ -6,6 +6,9 @@ def scrape_gplay_books(url):
     res = requests.get(url)
     doc = BeautifulSoup(res.text, 'html.parser')
 
+    cvr_tag = doc.find('img', 'T75of h1kAub')
+    cvr = cvr_tag['srcset'].replace(' 2x', '')
+
     title_tag = doc.select('h1[itemprop="name"] span')
     title = title_tag[0].getText()
 
@@ -48,6 +51,11 @@ def scrape_gplay_books(url):
 
     cmptblty = info['Best for']
 
+    price_tag = doc.select('button[class="LkLjZd ScJHi HPiPcc IfEcue"] meta[itemprop="price"]')
+    price = price_tag[0]['content'].replace('$', '')
+    price_idr = float(price) * 14372.15
+    price_final = 'IDR ' + "{:,.2f}".format(price_idr)
+
     rating_tag = doc.select('div[class="BHMmbe"]')
     rating = rating_tag[0].getText()
 
@@ -55,7 +63,7 @@ def scrape_gplay_books(url):
     rev_num = rev_num_tag[1].getText()
 
     book_info = {
-        'Cover':'N/A',
+        'Cover':cvr,
         'Title':title,
         'Description':desc,
         'Author':author,
@@ -65,10 +73,10 @@ def scrape_gplay_books(url):
         'Language':lang,
         'Pages':pages,
         'Compatibility':cmptblty,
-        'Price':'IDR'+ '0',
+        'Price':price_final,
         'Rating':rating,
-        'Total Rating':rev_num}
+        'Number of Reviewer':rev_num}
 
     return book_info
 
-app = Flask(__name__)
+#app = Flask(__name__)
