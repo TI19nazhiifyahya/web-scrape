@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h3>{% block title %}Detail Buku{% endblock title %}</h3>
+
+
+<div class="row">
+    <div class="col-lg-1">
+
+    </div>
+    <div class="col-lg-10">
+        <div class="row">
+            <div class="col-lg-3" style="margin:0;">
+                <img style="max-width:200px;max-height:281px;" src="{{datas['cover']}}">
+            </div>
+            <div class="col-lg-9" style="margin:0;">
+                <h2>{{datas['title']}}</h2>
+                <p>{{datas['author']}} &emsp; {{datas['date']}} <br> {{datas['publisher']}}</p>
+                <p style="font-size:14px;">{{datas['description']}}</p>
+            </div>
+        </div>        
+    </div>
+    
+</div>
+
+
+{% endblock content %}

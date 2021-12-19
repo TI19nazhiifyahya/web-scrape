@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>{% block title %}List Buku{% endblock title %}</h1>
+
+<div class="row">
+    {% for data in datas %}
+        <div class="col-lg-3">
+            <div aria-hidden="true" style="height: 400px; max-width: 280px;border:1px solid black;margin:10px;padding:10px;">
+                <a href="http://localhost:5000/detail/{{data['id']}}"><img aria-hidden="true" style="max-height: 230px; max-width: 160px; height: 230px;" src="{{data['cover']}}"></a>
+                <marquee scrollamount="5">{{ data['title'] }}</marquee>
+                <!--<p>Deskripsi : {{ data['description'] }}</p>-->
+                <p>Penulis : {{ data['author'] }}</p>
+                <p>Penerbit : {{ data['publisher'] }}</p>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+
+{% endblock content %}

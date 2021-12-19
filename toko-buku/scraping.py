@@ -1,6 +1,21 @@
-import requests
+import requests,mysql.connector
+from flask import request
 from bs4 import BeautifulSoup
-from flask import Flask
+#from flask import Flask
+
+def get_db_connection():
+    #conn = sqlite3.connect('database.db')
+    #conn.row_factory = sqlite3.Row
+    #return conn
+    conn = mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password="",
+        database="toko_buku"
+    )
+
+    return conn
+
 
 def scrape_gplay_books(url):
     res = requests.get(url)
@@ -80,3 +95,36 @@ def scrape_gplay_books(url):
     return book_info
 
 #app = Flask(__name__)
+book = scrape_gplay_books('https://play.google.com/store/books/details/Inori_I_m_in_Love_with_the_Villainess_Light_Novel?id=QVgsEAAAQBAJ')
+# print(book)
+conn = get_db_connection()
+cursor = conn.cursor()
+cursor.execute('INSERT INTO buku (cover,title,description,author,publisher,publication_date,genres,language,pages,compatibility,price,rating,total_rating) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',(book['Cover'],book['Title'],book['Description'],book['Author'],book['Publisher'],book['Publication Date'],book['Genres'],book['Language'],book['Pages'],book['Compatibility'],book['Price'],book['Rating'],book['Total Rating']))
+conn.commit()
+conn.close()
+
+
+'''
+app.config['MONGODB_SETTINGS'] = {
+    'db': 'your_database',
+    'host': 'localhost',
+    'port': 27017
+}
+db = MongoEngine()
+db.init_app(app)
+
+class Book(db.Document):
+    Cover = db.StringField()
+    Title = db.StringField()
+    Description = db.StringField()
+    Author = db.StringField()
+    Publisher = db.StringField()
+    Publication_date = db.StringField()
+    Genres = db.StringField()
+    Language = db.StringField()
+    Pages = db.StringField()
+    Compatibility = db.StringField()
+    Price = db.StringField()
+    Rating = db.StringField()
+    Total_rating = db.StringField()
+'''
