@@ -1,15 +1,10 @@
-# import sqlite3
 import mysql.connector
 
-# connection = sqlite3.connect('database.db')
 connection = mysql.connector.connect(
     host = "localhost",
     user = "root",
     password = "",
 )
-
-# with open('schema.sql') as f:
-#     connection.executescript(f.read())
 
 cur = connection.cursor()
 cur.execute("CREATE DATABASE IF NOT EXISTS toko_buku")
