@@ -85,7 +85,7 @@ def scrape_gplay_books(url):
     price_tag = doc.select('button[class="LkLjZd ScJHi HPiPcc IfEcue"] meta[itemprop="price"]')
     price = price_tag[0]['content'].replace('$', '')
     price_idr = float(price) * 14372.15
-    price_final = 'IDR ' + "{:,.2f}".format(price_idr)
+    price_final = 'IDR ' + "{:,}".format(int(price_idr)) + '.00'
 
     rating_tag = doc.select('div[class="BHMmbe"]')
     rating = rating_tag[0].getText()
@@ -113,10 +113,6 @@ def scrape_gplay_books(url):
 app = Flask(__name__)
 
 @app.route('/')
-@app.route('/index')
-def index():
-    return render_template('index.html')
-
 @app.route('/home')
 def home():
     conn = get_db_connection()
@@ -132,6 +128,8 @@ def home():
             'description': entry[3],
             'author': entry[4],
             'publisher': entry[5],
+            'price': entry[11],
+            'rating': entry[12]
         }
         datas.append(record)
     conn.close()
@@ -146,12 +144,12 @@ def detail(buku_id):
 def admin():
     return render_template('admin.html')
 
-@app.route('/scrape', methods=['POST'])
+@app.route('/admin/scrape', methods=['POST'])
 def scrape():
-    url_list = request.form['link-to-scrape'].split(',')
-    log_response = []
+    url_list = request.form['link_textarea'].split(',')
+    report_list = []
     for url in url_list:
-        respons = 'Scraping ' + url
+        report = 'Scraping ' + url
         try:
             book = scrape_gplay_books(url)
             conn = get_db_connection()
@@ -159,9 +157,9 @@ def scrape():
             cursor.execute('INSERT INTO buku (cover,title,description,author,publisher,publication_date,genres,language,pages,compatibility,price,rating,total_rating) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',(book['Cover'],book['Title'],book['Description'],book['Author'],book['Publisher'],book['Publication Date'],book['Genres'],book['Language'],book['Pages'],book['Compatibility'],book['Price'],book['Rating'],book['Number of Reviewer']))
             conn.commit()
             conn.close()
-            respons+= ' success\n'
-        except:
-            respons+= ' failed\n'
+            report+= ' success\n'
+        except Exception as e:
+            report+= ' failed ' + repr(e) + '\n'
         
-        log_response.append(respons)
-    return render_template('scrape_result.html', response = log_response)
+        report_list.append(report)
+    return render_template('scrape_report.html', report = report_list)
