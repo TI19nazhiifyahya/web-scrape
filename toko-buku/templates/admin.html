@@ -3,11 +3,15 @@
 {% block title %}Admin Page{% endblock %}
 
 {% block content %}
-<form action="{{ url_for('scrape') }}" method="POST">
-    <label for="link-to-scrape">Link to Scrape (1 link 1 book and comma-separated): </label>
-    <br>
-    <textarea name="link_textarea" id="link-to-scrape" cols="100" rows="10"></textarea>
-    <br>
-    <button type="submit">Scrape!</button>
+<form action="{{ url_for('scrape') }}">
+    <button>Scraping</button>
+</form>
+
+<form action="{{ url_for('admin_book_menu') }}">
+    <button>Book Menu</button>
+</form>
+
+<form action="{{ url_for('admin_dashboard') }}">
+    <button>Dashboard</button>
 </form>
 {% endblock %}

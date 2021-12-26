@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Book Menu{% endblock %}
+
+{% block content %}
+<form enctype = "multipart/form-data" action="{{ url_for('admin_import_book') }}" method="POST">
+    <label for="import-book">Import Book</label>
+    <br>
+    <input type="file" name="file-to-import" id="import-book">
+    <br>
+    <button type="submit" value="Upload">Import</button>
+</form>
+
+<label for="export-all-books">Export All Books</label>
+<br>
+<button type="submit" id="export-all-books" formaction="">Export</button>
+
+<table>
+    <tr>
+        <th>Title</th>
+        <th>Author</th>
+        <th>Genres</th>
+        <th>Publisher</th>
+        <th>Publication Date</th>
+        <th>Status</th>
+        <th>Edit</th>
+        <th>Delete</th>
+    </tr>
+    {% for data in book_data: %}
+    <tr>
+        <td>{{ data['title'] }}</td>
+        <td>{{ data['author'] }}</td>
+        <td>{{ data['genres'] }}</td>
+        <td>{{ data['publisher'] }}</td>
+        <td>{{ data['publication_date'] }}</td>
+        <td></td>
+        <td><button type="submit" formaction="">Edit</button></td>
+        <td><button type="submit" formaction="">Delete</button></td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}
