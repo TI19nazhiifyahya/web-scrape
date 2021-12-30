@@ -3,12 +3,12 @@
 {% block title %}Admin Book Menu{% endblock %}
 
 {% block content %}
-<form enctype = "multipart/form-data" action="{{ url_for('admin_import_book') }}" method="POST">
+<form enctype = "multipart/form-data" action="{{ url_for('admin_book_menu') }}" method="POST">
     <label for="import-book">Import Book</label>
     <br>
     <input type="file" name="file-to-import" id="import-book">
     <br>
-    <button type="submit" value="Upload">Import</button>
+    <button type="submit" name="import_button" value="upload">Import</button>
 </form>
 
 <label for="export-all-books">Export All Books</label>
@@ -34,8 +34,16 @@
         <td>{{ data['publisher'] }}</td>
         <td>{{ data['publication_date'] }}</td>
         <td></td>
-        <td><button type="submit" formaction="">Edit</button></td>
-        <td><button type="submit" formaction="">Delete</button></td>
+        <td>
+            <form action="{{ url_for('admin_edit_book', book_title = data['title']) }}" method="GET">
+                <button type="submit">Edit</button>
+            </form>
+        </td>
+        <td>
+            <form action="{{ url_for('admin_book_menu') }}" method='POST'>
+                <button type="submit" name="delete_button" value='{{ data["title"] }}'>Delete</button>
+            </form>
+        </td>
     </tr>
     {% endfor %}
 </table>

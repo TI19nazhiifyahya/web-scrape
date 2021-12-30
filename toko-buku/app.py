@@ -111,6 +111,7 @@ def scrape_gplay_books(url):
     return book_info
 
 app = Flask(__name__)
+app.secret_key = 'thisIsSecret'
 
 @app.route('/')
 @app.route('/home/')
@@ -168,44 +169,88 @@ def scrape_run():
         report_list.append(report)
     return render_template('scrape_report.html', report = report_list)
 
-@app.route('/admin/book_menu/')
+@app.route('/admin/book_menu/', methods = ['GET', 'POST'])
 def admin_book_menu():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute('SELECT title, author, genres, publisher, publication_date FROM buku')
-    result = cursor.fetchall()
-    data = []
-    for entry in result:
-        book = {
-            'title': entry[0],
-            'author': entry[1],
-            'genres': entry[2],
-            'publisher': entry[3],
-            'publication_date': entry[4],
-        }
-        data.append(book)
-    return render_template('admin_book_menu.html', book_data = data)
-
-@app.route('/admin/book_menu/import/', methods=['POST'])
-def admin_import_book():
-    f = request.files['file-to-import']
-    f.save('temp/' + f.filename)
-    file = open('temp/' + f.filename)
-    file_reader = csv.reader(file)
-    file_data = list(file_reader)
-    for data in file_data:
+    if request.method == 'POST':
+        if 'delete_button' in request.form:
+            book_title = request.form['delete_button']
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute('DELETE FROM buku WHERE title=%s', (book_title,))
+            conn.commit()
+            conn.close()
+            return redirect(url_for('admin_book_menu'))
+        elif 'import_button' in request.form:
+            f = request.files['file-to-import']
+            f.save('temp/' + f.filename)
+            file = open('temp/' + f.filename)
+            file_reader = csv.reader(file)
+            file_data = list(file_reader)
+            for data in file_data:
+                conn = get_db_connection()
+                cursor = conn.cursor()
+                cursor.execute('INSERT INTO buku (cover,title,description,author,publisher,publication_date,genres,language,pages,compatibility,price,rating,total_rating) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)', (data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9], data[10], data[11], data[12]))
+                conn.commit()
+                conn.close()
+            file.close()
+            os.remove('temp/' + f.filename)
+            #flash('Import successful!', 'info')
+            return redirect(url_for('admin_book_menu'))
+    else:
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute('INSERT INTO buku (cover,title,description,author,publisher,publication_date,genres,language,pages,compatibility,price,rating,total_rating) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)', (data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9], data[10], data[11], data[12]))
-        conn.commit()
+        cursor.execute('SELECT title, author, genres, publisher, publication_date FROM buku')
+        result = cursor.fetchall()
         conn.close()
-    file.close()
-    os.remove('temp/' + f.filename)
-    return redirect(url_for('admin_book_menu'))
+        data = []
+        for entry in result:
+            book = {
+                'title': entry[0],
+                'author': entry[1],
+                'genres': entry[2],
+                'publisher': entry[3],
+                'publication_date': entry[4],
+            }
+            data.append(book)
+        return render_template('admin_book_menu.html', book_data = data)
 
 @app.route('/admin/book_menu/export_all/')
 def admin_export_all_books():
     return 'export'
+
+@app.route('/admin/book_menu/edit_book/<book_title>/', methods=['GET', 'POST'])
+def admin_edit_book(book_title):
+    if request.method == 'GET':
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM buku WHERE title=%s', (book_title,))
+        result = cursor.fetchone()
+        conn.close()
+        return render_template('admin_edit_book.html', book_data = result)
+    else:
+        new_data = {
+            'cover': request.form['cvr'],
+            'title': request.form['ttl'],
+            'desc': request.form['dsc'],
+            'author': request.form['auth'],
+            'publisher': request.form['pub'],
+            'publish date': request.form['pub date'],
+            'genres': request.form['gen'],
+            'language': request.form['lang'],
+            'pages': request.form['pg'],
+            'compatibility': request.form['comp'],
+            'price': request.form['prc'],
+            'rating': request.form['rtg'],
+            'num of review': request.form['num rev'],
+        }
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT id FROM buku WHERE title=%s', (book_title,))
+        book_id = str(cursor.fetchone()[0])
+        cursor.execute('UPDATE buku SET cover=%s, title=%s, description=%s, author=%s, publisher=%s, publication_date=%s, genres=%s, language=%s, pages=%s, compatibility=%s, price=%s, rating=%s, total_rating=%s WHERE id=%s', (new_data['cover'], new_data['title'], new_data['desc'], new_data['author'], new_data['publisher'], new_data['publish date'], new_data['genres'], new_data['language'], new_data['pages'], new_data['compatibility'], new_data['price'], new_data['rating'], new_data['num of review'], book_id))
+        conn.commit()
+        conn.close()
+        return redirect(url_for('admin_edit_book', book_title=new_data['title']))
 
 @app.route('/admin/dashboard/')
 def admin_dashboard():
