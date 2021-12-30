@@ -3,13 +3,56 @@
 <h1>{% block title %}Book Catalogue{% endblock %}</h1>
 
 {% block content %}
+<form action="{{ url_for('search') }}" method="POST">
+    <input type="search" name="search-phrs" placeholder="Search...">
+    <button type="submit">Go</button>
+</form>
+<br>
+<p>Filter</p>
+<form action="{{ url_for('filter') }}" method="POST">
+    <label for="genre-f">Genre: </label>
+    <select name="genre" id="genre-f">
+        {% for genre in genre_list %}
+            <option value="{{ genre }}">{{ genre }}</option>
+        {% endfor %}
+    </select>
+
+    <label for="lang-f">Languages: </label>
+    <select name="lang" id="lang-f">
+        {% for lang in lang_list %}
+            <option value="{{ lang }}">{{ lang }}</option>
+        {% endfor %}
+    </select>
+
+    <label for="comp-f">Compatibility: </label>
+    <select name="comp" id="comp-f">
+        {% for comp in comp_list %}
+            <option value="{{ comp }}">{{ comp }}</option>
+        {% endfor %}
+    </select>
+
+    <button type="submit">Apply</button>
+</form>
+<br>
+<form action="{{ url_for('sort') }}" method="POST">
+    <label for="sort">Sort: </label>
+    <select name="sort-opt" id="sort">
+        <option value="termahal-termurah">Termahal-Termurah</option>
+        <option value="termurah-termahal">Termurah-Termahal</option>
+        <option value="terbaru-terlama">Terbaru-Terlama</option>
+        <option value="terlama-terbaru">Terlama-Terbaru</option>
+        <option value="rating tertinggi-terendah">Rating Tertinggi-Terendah</option>
+        <option value="rating terendah-tertinggi">Rating Terendah-Tertinggi</option>
+    </select>
+    <button>Go</button>
+</form>
+
 <div class="row">
     {% for data in datas %}
         <div class="col-lg-3">
             <div aria-hidden="true" style="height: 400px; max-width: 280px;border:1px solid black;margin:10px;padding:10px;">
                 <a href="{{ url_for('detail', buku_id=data['id']) }}"><img aria-hidden="true" style="max-height: 230px; max-width: 160px; height: 230px;" src="{{ data['cover'] }}"></a>
                 <marquee scrollamount="5">{{ data['title'] }}</marquee>
-                <!--<p>Deskripsi : {{ data['description'] }}</p>-->
                 <p>Penulis : {{ data['author'] }}</p>
                 <p>Penerbit : {{ data['publisher'] }}</p>
                 <span>{{ data['rating'] }}</span>

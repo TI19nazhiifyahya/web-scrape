@@ -110,10 +110,55 @@ def scrape_gplay_books(url):
 
     return book_info
 
+def genre_list():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    query = "SELECT genres FROM buku"
+    cursor.execute(query)
+    result = cursor.fetchall()
+    genre_list = ['Select']
+    for entry in result:
+        genres = entry[0].split(' / ')
+        for genre in genres:
+            if genre not in genre_list:
+                genre_list.append(genre)
+    return genre_list 
+
+def lang_list():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    query = "SELECT language FROM buku"
+    cursor.execute(query)
+    result = cursor.fetchall()
+    lang_list = ['Select']
+    for entry in result:
+        langs = entry
+        for lang in langs:
+            if lang not in lang_list:
+                lang_list.append(lang)
+    return lang_list
+
+def comp_list():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    query = "SELECT compatibility FROM buku"
+    cursor.execute(query)
+    result = cursor.fetchall()
+    comp_list = ['Select']
+    for entry in result:
+        comps = entry[0].split(', ')
+        for comp in comps:
+            if comp not in comp_list:
+                comp_list.append(comp)
+    return comp_list
+
 app = Flask(__name__)
 app.secret_key = 'thisIsSecret'
 
 @app.route('/')
+def one():
+    return redirect(url_for('home'))
+
 @app.route('/home/')
 def home():
     conn = get_db_connection()
@@ -134,7 +179,111 @@ def home():
         }
         datas.append(record)
     conn.close()
-    return render_template('home.html',datas=datas)
+    return render_template('home.html', datas=datas, genre_list = genre_list(), lang_list = lang_list(), comp_list = comp_list())
+
+@app.route('/search/', methods=['POST'])
+def search():
+    if request.method == 'POST':
+        srch_phrase = request.form['search-phrs']
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        query = f"SELECT * FROM buku WHERE title LIKE '%{srch_phrase}%'"
+        cursor.execute(query)
+        result = cursor.fetchall()
+        books = []
+        for entry in result:
+            record = {
+                'id': entry[0],
+                'cover': entry[1],
+                'title': entry[2],
+                'description': entry[3],
+                'author': entry[4],
+                'publisher': entry[5],
+                'price': entry[11],
+                'rating': entry[12]
+            }
+            books.append(record)
+        conn.close()
+        return render_template('home.html', datas = books, genre_list = genre_list(), lang_list = lang_list(), comp_list = comp_list())
+
+@app.route('/filter/', methods=['POST'])
+def filter():
+    if request.method == 'POST':
+        genre = request.form['genre']
+        lang = request.form['lang']
+        comp =  request.form['comp']
+        if genre == 'Select' and lang == 'Select' and comp == 'Select':
+            return redirect(url_for('home'))
+        query = 'SELECT * FROM buku WHERE '
+        if genre != 'Select':
+            query+="genres LIKE '%"+genre+"%'"
+        if lang != 'Select':
+            if genre != 'Select':
+                query+="AND language LIKE '%"+lang+"%'"
+            else:
+                query+="language LIKE '%"+lang+"%'"
+        if comp != 'Select':
+            if genre != 'Select' or lang != 'Select':
+                query+="AND compatibility LIKE '%"+comp+"%'"
+            else:
+                query+="compatibility LIKE '%"+comp+"%'"
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(query)
+        result = cursor.fetchall()
+        conn.close()
+        books = []
+        for entry in result:
+            record = {
+                'id': entry[0],
+                'cover': entry[1],
+                'title': entry[2],
+                'description': entry[3],
+                'author': entry[4],
+                'publisher': entry[5],
+                'price': entry[11],
+                'rating': entry[12]
+            }
+            books.append(record)
+        return render_template('home.html', datas = books, genre_list = genre_list(), lang_list = lang_list(), comp_list = comp_list())
+        
+
+@app.route('/sort/', methods=['POST'])
+def sort():
+    if request.method == 'POST':
+        query = 'SELECT * FROM buku ORDER BY '
+        if request.form['sort-opt'] == 'termahal-termurah':
+            query+='price DESC, title'
+        elif request.form['sort-opt'] == 'termurah-termahal':
+            query+='price ASC, title'
+        elif request.form['sort-opt'] == 'terbaru-terlama':
+            query+='publication_date DESC, title'
+        elif request.form['sort-opt'] == 'terlama-terbaru':
+            query+='publication_date ASC, title'
+        elif request.form['sort-opt'] == 'rating tertinggi-terendah':
+            query+='rating DESC, title'
+        elif request.form['sort-opt'] == 'rating terendah-tertinggi':
+            query+='rating ASC, title'
+
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(query)
+        result = cursor.fetchall()
+        conn.close()
+        books = []
+        for entry in result:
+            record = {
+                'id': entry[0],
+                'cover': entry[1],
+                'title': entry[2],
+                'description': entry[3],
+                'author': entry[4],
+                'publisher': entry[5],
+                'price': entry[11],
+                'rating': entry[12]
+            }
+            books.append(record)
+        return render_template('home.html', datas = books, genre_list = genre_list(), lang_list = lang_list(), comp_list = comp_list())
 
 @app.route('/detail/<int:buku_id>/')
 def detail(buku_id):
