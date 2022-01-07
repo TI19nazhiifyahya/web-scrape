@@ -48,17 +48,21 @@
 </form>
 
 <div class="row">
-    {% for data in datas %}
-        <div class="col-lg-3">
-            <div aria-hidden="true" style="height: 400px; max-width: 280px;border:1px solid black;margin:10px;padding:10px;">
-                <a href="{{ url_for('detail', buku_id=data['id']) }}"><img aria-hidden="true" style="max-height: 230px; max-width: 160px; height: 230px;" src="{{ data['cover'] }}"></a>
-                <marquee scrollamount="5">{{ data['title'] }}</marquee>
-                <p>Penulis : {{ data['author'] }}</p>
-                <p>Penerbit : {{ data['publisher'] }}</p>
-                <span>{{ data['rating'] }}</span>
-                <span>{{ data['price'] }}</span>
+    {% if datas|length == 0 %}
+    <p>Books Not Found</p>
+    {% else %}
+        {% for data in datas %}
+            <div class="col-lg-3">
+                <div aria-hidden="true" style="height: 400px; max-width: 280px;border:1px solid black;margin:10px;padding:10px;">
+                    <a href="{{ url_for('detail', buku_id=data['id']) }}"><img aria-hidden="true" style="max-height: 230px; max-width: 160px; height: 230px;" src="{{ data['cover'] }}"></a>
+                    <marquee scrollamount="5">{{ data['title'] }}</marquee>
+                    <p>Penulis : {{ data['author'] }}</p>
+                    <p>Penerbit : {{ data['publisher'] }}</p>
+                    <span>{{ data['rating'] }}</span>
+                    <span>{{ data['price'] }}</span>
+                </div>
             </div>
-        </div>
-    {% endfor %}
+        {% endfor %}
+    {% endif %}
 </div>
 {% endblock %}
