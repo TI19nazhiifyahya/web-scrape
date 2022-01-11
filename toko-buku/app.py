@@ -181,7 +181,7 @@ def home():
     conn.close()
     return render_template('home.html', datas=datas, genre_list = genre_list(), lang_list = lang_list(), comp_list = comp_list())
 
-@app.route('/search/', methods=['POST'])
+@app.route('/home/search/', methods=['POST'])
 def search():
     if request.method == 'POST':
         srch_phrase = request.form['search-phrs']
@@ -206,7 +206,7 @@ def search():
         conn.close()
         return render_template('home.html', datas = books, genre_list = genre_list(), lang_list = lang_list(), comp_list = comp_list())
 
-@app.route('/filter/', methods=['POST'])
+@app.route('/home/filter/', methods=['POST'])
 def filter():
     if request.method == 'POST':
         genre = request.form['genre']
@@ -248,7 +248,7 @@ def filter():
         return render_template('home.html', datas = books, genre_list = genre_list(), lang_list = lang_list(), comp_list = comp_list())
         
 
-@app.route('/sort/', methods=['POST'])
+@app.route('/home/sort/', methods=['POST'])
 def sort():
     if request.method == 'POST':
         query = 'SELECT * FROM buku ORDER BY '
