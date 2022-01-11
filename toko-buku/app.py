@@ -75,6 +75,17 @@ def scrape_gplay_books(url):
     pub = info['Publisher']
 
     pub_date = info['Published on']
+    pub_date_list = pub_date.split(' ')
+    pub_date_month = pub_date_list[0]
+    month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    for i in range(len(month)):
+        if month[i] == pub_date_month:
+            pub_date_month = i+1
+            break
+    pub_date_day = pub_date_list[1].replace(',', '')
+    pub_date_year = pub_date_list[2]
+    pub_date_final = '%s-%s-%s' % (pub_date_year, pub_date_month, pub_date_day)
+    
 
     lang = info['Language']
 
@@ -85,7 +96,7 @@ def scrape_gplay_books(url):
     price_tag = doc.select('button[class="LkLjZd ScJHi HPiPcc IfEcue"] meta[itemprop="price"]')
     price = price_tag[0]['content'].replace('$', '')
     price_idr = float(price) * 14372.15
-    price_final = 'IDR ' + "{:,}".format(int(price_idr)) + '.00'
+    price_final = int(price_idr)
 
     rating_tag = doc.select('div[class="BHMmbe"]')
     rating = rating_tag[0].getText()
@@ -99,7 +110,7 @@ def scrape_gplay_books(url):
         'Description':desc,
         'Author':author,
         'Publisher':pub,
-        'Publication Date':pub_date,
+        'Publication Date':pub_date_final,
         'Genres':genres,
         'Language':lang,
         'Pages':pages,
@@ -174,7 +185,7 @@ def home():
             'description': entry[3],
             'author': entry[4],
             'publisher': entry[5],
-            'price': entry[11],
+            'price': 'IDR ' + '{:,}'.format(entry[11]) + '.00',
             'rating': entry[12]
         }
         datas.append(record)
@@ -199,7 +210,7 @@ def search():
                 'description': entry[3],
                 'author': entry[4],
                 'publisher': entry[5],
-                'price': entry[11],
+                'price': 'IDR ' + '{:,}'.format(entry[11]) + '.00',
                 'rating': entry[12]
             }
             books.append(record)
@@ -212,21 +223,31 @@ def filter():
         genre = request.form['genre']
         lang = request.form['lang']
         comp =  request.form['comp']
-        if genre == 'Select' and lang == 'Select' and comp == 'Select':
-            return redirect(url_for('home'))
+        year_begin = request.form['pub-year-begin']
+        year_end = request.form['pub-year-end']
+        #if genre == 'Select' and lang == 'Select' and comp == 'Select':
+         #   return redirect(url_for('home'))
         query = 'SELECT * FROM buku WHERE '
         if genre != 'Select':
             query+="genres LIKE '%"+genre+"%'"
         if lang != 'Select':
             if genre != 'Select':
-                query+="AND language LIKE '%"+lang+"%'"
+                query+=" AND language LIKE '%"+lang+"%'"
             else:
                 query+="language LIKE '%"+lang+"%'"
         if comp != 'Select':
             if genre != 'Select' or lang != 'Select':
-                query+="AND compatibility LIKE '%"+comp+"%'"
+                query+=" AND compatibility LIKE '%"+comp+"%'"
             else:
                 query+="compatibility LIKE '%"+comp+"%'"
+        if year_begin and year_end:
+            if genre != 'Select' or lang != 'Select' or comp != 'Select':
+                qy = " AND YEAR(publication_date) BETWEEN %s AND %s" % (year_begin, year_end)
+                query+=qy
+            else:
+                qy = "YEAR(publication_date) BETWEEN %s AND %s" % (year_begin, year_end)
+                query+=qy
+        
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute(query)
@@ -241,12 +262,12 @@ def filter():
                 'description': entry[3],
                 'author': entry[4],
                 'publisher': entry[5],
-                'price': entry[11],
+                'price': 'IDR ' + '{:,}'.format(entry[11]) + '.00',
                 'rating': entry[12]
             }
             books.append(record)
         return render_template('home.html', datas = books, genre_list = genre_list(), lang_list = lang_list(), comp_list = comp_list())
-        
+      
 
 @app.route('/home/sort/', methods=['POST'])
 def sort():
@@ -279,7 +300,7 @@ def sort():
                 'description': entry[3],
                 'author': entry[4],
                 'publisher': entry[5],
-                'price': entry[11],
+                'price': 'IDR ' + '{:,}'.format(entry[11]) + '.00',
                 'rating': entry[12]
             }
             books.append(record)

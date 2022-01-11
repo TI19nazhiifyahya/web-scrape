@@ -31,6 +31,11 @@
         {% endfor %}
     </select>
 
+    <label for="pub-year-begin-f">Published Between: </label>
+    <input type="number" min="1900" max="2099" step="1" name="pub-year-begin" id="pub-year-begin-f" />
+    <label for="pub-year-end-f"> Until </label>
+    <input type="number" min="1900" max="2099" step="1" name="pub-year-end" id="pub-year-end-f" />
+
     <button type="submit">Apply</button>
 </form>
 <br>
