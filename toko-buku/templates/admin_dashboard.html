@@ -2,14 +2,19 @@
 
 {% block title %}Admin Dashboard{% endblock %}
 
+<<<<<<< HEAD
 {% block content %}
 <!DOCTYPE html>
 <html>
 <head>
+=======
+{% block script %}
+>>>>>>> d10cf7afa80f20b1db836421fe573837b78aeae1
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 <script type="text/javascript">
       google.charts.load('current', {'packages':['corechart']});
       google.charts.setOnLoadCallback(drawChart);
+<<<<<<< HEAD
 
       function drawChart() {
 
@@ -35,4 +40,30 @@
     <div id="chartgenre" style="width: 900px; height: 500px;"></div>
   </body>
 </html>
+=======
+
+      function drawChart() {
+        var data = google.visualization.arrayToDataTable([
+          ['Languages', 'Books'],
+          {% for i in dataBahasa %}
+            ['{{i[0]}}',{{i[1]}}],
+          {% endfor %}
+        ]);
+        
+
+        var options = {
+          title: 'Data Perbandingan Jumlah Bahasa Buku'
+        };
+
+        var chart = new google.visualization.PieChart(document.getElementById('piechart'));
+
+        chart.draw(data, options);
+      }
+ 
+    </script>
+{% endblock %}
+
+{% block content %}
+<div id="piechart" style="width: 900px; height: 500px;"></div>
+>>>>>>> d10cf7afa80f20b1db836421fe573837b78aeae1
 {% endblock %}
