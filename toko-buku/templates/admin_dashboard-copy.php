@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'base.php' %}
 
 {% block title %}Admin Dashboard{% endblock %}
 
@@ -9,16 +9,33 @@
       google.charts.setOnLoadCallback(drawChart);
 
       function drawChart() {
+        var dataz = JSON.parse('{{ datas | tojson }}');
+        var tambah;
+        for(let i = 0; i < dataz.length; i++){
+            if(i==0){
+                tambah = "["+dataz[i]+"],";
+            }else{
+                tambah += "["+dataz[i]+"],";
+            }
+        }
+        //document.write(tambah);
+        <?php
+          $data = json_decode('{{datas}}');
+          echo $data;
+        ?>
         var data = google.visualization.arrayToDataTable([
           ['Languages', 'Books'],
-          {% for i in dataBahasa %}
-            ['{{i[0]}}',{{i[1]}}],
-          {% endfor %}
+         
+        // ['Work',     11],
+        // ['Eat',      2],
+        // ['Commute',  2],
+        // ['Watch TV', 2],
+        // ['Sleep',    7]
         ]);
         
 
         var options = {
-          title: 'Data Perbandingan Jumlah Bahasa Buku'
+          title: 'Students and their contribution'
         };
 
         var chart = new google.visualization.PieChart(document.getElementById('piechart'));

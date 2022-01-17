@@ -14,6 +14,18 @@ def get_db_connection():
 
     return conn
 
+def chartBahasa():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT language, count(*) as number FROM buku GROUP BY language;')
+    result = cursor.fetchall()
+    dataBahasa = []
+    for entry in result:
+        record = [entry[0],entry[1]]
+        dataBahasa.append(record)
+    conn.close()
+    return dataBahasa
+
 def get_buku(buku_id):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -424,4 +436,5 @@ def admin_edit_book(book_title):
 
 @app.route('/admin/dashboard/')
 def admin_dashboard():
-    return render_template('admin_dashboard.html')
+    dataBahasa = chartBahasa()
+    return render_template('admin_dashboard.html',dataBahasa=dataBahasa)

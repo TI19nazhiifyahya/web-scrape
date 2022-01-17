@@ -25,8 +25,7 @@
         // ['Watch TV', 2],
         // ['Sleep',    7]
         <?php
-        $sql = "SELECT language, COUNT(*) FROM buku";
-        $fire = mysqli_query($con, $sql);
+        
         while ($result = mysqli_fetch_assoc($fire)) {
             echo"['".$result['Language']."',".$result['Books']."],";
         }
