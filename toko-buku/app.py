@@ -439,7 +439,8 @@ def admin_dashboard():
     ratecount = countingrate()
     dataBahasa = chartBahasa()
     dataYear = chartYear()
-    return render_template('admin_dashboard.html', ratecount=ratecount, dataBahasa=dataBahasa, dataYear=dataYear)
+    dataGenre = chartGenre()
+    return render_template('admin_dashboard.html', ratecount=ratecount, dataBahasa=dataBahasa, dataYear=dataYear, dataGenre=dataGenre)
 
 def countingrate():
     conn = get_db_connection()
@@ -470,3 +471,27 @@ def chartYear():
         dataYear.append(record)
     conn.close()
     return dataYear
+
+def chartGenre():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    query = "SELECT DISTINCT genres FROM buku"
+    cursor.execute(query)
+    result = cursor.fetchall()
+    genre_list = []
+    for all in result:
+        input = all[0].split(' / ')
+        for i in input:
+            genre_list.append(i)
+    genre_list = list(dict.fromkeys(genre_list))
+    dataGenre = {}
+    for genres in genre_list:
+        like = "%"+genres+"%"
+        query = f"SELECT COUNT(genres) FROM buku WHERE genres LIKE '{like}'"
+        cursor.execute(query)
+        value = cursor.fetchone()
+        value = value[0]
+        dataGenre[genres]=value
+    conn.close()     
+    print(dataGenre)  
+    return dataGenre
