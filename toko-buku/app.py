@@ -436,9 +436,9 @@ def admin_edit_book(book_title):
 
 @app.route('/admin/dashboard/')
 def admin_dashboard():
-<<<<<<< HEAD
     ratecount = countingrate()
-    return render_template('admin_dashboard.html', ratecount=ratecount)
+    dataBahasa = chartBahasa()
+    return render_template('admin_dashboard.html', ratecount=ratecount, dataBahasa=dataBahasa)
 
 def countingrate():
     conn = get_db_connection()
@@ -457,7 +457,3 @@ def countingrate():
     for i in range(5):
         ratecount[i+1] = numpy.count_nonzero(datarating == i+1)
     return ratecount
-=======
-    dataBahasa = chartBahasa()
-    return render_template('admin_dashboard.html',dataBahasa=dataBahasa)
->>>>>>> d10cf7afa80f20b1db836421fe573837b78aeae1
