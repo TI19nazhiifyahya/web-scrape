@@ -1,4 +1,4 @@
-import requests, mysql.connector, csv, os
+import requests, mysql.connector, csv, os, numpy
 from flask import Flask, render_template, request, url_for, flash, redirect
 from requests.api import get
 from werkzeug.exceptions import abort
@@ -424,4 +424,23 @@ def admin_edit_book(book_title):
 
 @app.route('/admin/dashboard/')
 def admin_dashboard():
-    return render_template('admin_dashboard.html')
+    ratecount = countingrate()
+    return render_template('admin_dashboard.html', ratecount=ratecount)
+
+def countingrate():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT rating FROM buku')
+    result = cursor.fetchall()
+    datarating = []
+    for all in result:
+        input = all[0]
+        input = str(input)
+        input = list(input)
+        input = int(input[0])
+        datarating.append(input)
+    datarating = numpy.array(datarating)
+    ratecount = {}
+    for i in range(5):
+        ratecount[i+1] = numpy.count_nonzero(datarating == i+1)
+    return ratecount
