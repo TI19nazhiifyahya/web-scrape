@@ -438,7 +438,8 @@ def admin_edit_book(book_title):
 def admin_dashboard():
     ratecount = countingrate()
     dataBahasa = chartBahasa()
-    return render_template('admin_dashboard.html', ratecount=ratecount, dataBahasa=dataBahasa)
+    dataYear = chartYear()
+    return render_template('admin_dashboard.html', ratecount=ratecount, dataBahasa=dataBahasa, dataYear=dataYear)
 
 def countingrate():
     conn = get_db_connection()
@@ -457,3 +458,15 @@ def countingrate():
     for i in range(5):
         ratecount[i+1] = numpy.count_nonzero(datarating == i+1)
     return ratecount
+
+def chartYear():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT EXTRACT(year FROM publication_date) AS year, COUNT(*) AS number FROM buku GROUP BY EXTRACT(year FROM publication_date);')
+    result = cursor.fetchall()
+    dataYear = []
+    for entry in result:
+        record = [entry[0],entry[1]]
+        dataYear.append(record)
+    conn.close()
+    return dataYear

@@ -52,12 +52,37 @@
 
         chart.draw(data, options);
       }
+</script>
+
+<script type="text/javascript">
+      google.charts.load('current', {'packages':['corechart']});
+      google.charts.setOnLoadCallback(drawChart);
+
+      function drawChart() {
+        var data = google.visualization.arrayToDataTable([
+          ['Year Published', 'Books'],
+          {% for i in dataYear %}
+            ['{{i[0]}}',{{i[1]}}],
+          {% endfor %}
+        ]);
+        
+
+        var options = {
+          title: 'Data Buku per Tahun Rilis'
+        };
+
+        var chart = new google.visualization.BarChart(document.getElementById('chartyear'));
+
+        chart.draw(data, options);
+      }
  
 </script>
+
 </head>
   <body>
     <div id="chartrating" style="width: 900px; height: 500px;"></div>
     <div id="chartbahasa" style="width: 900px; height: 500px;"></div>
+    <div id="chartyear" style="width: 900px; height: 500px;"></div>
   </body>
 </html>
 {% endblock %}
