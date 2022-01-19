@@ -4,35 +4,50 @@
 
 {% block sidebar %} 
 <p>Filter</p>
-<form action="{{ url_for('filter') }}" method="POST">
-    <label for="genre-f">Genre: </label>
-    <select name="genre" id="genre-f">
-        {% for genre in genre_list %}
-            <option value="{{ genre }}">{{ genre }}</option>
-        {% endfor %}
-    </select>
+<div class="form-group">
+    <form action="{{ url_for('filter') }}" method="POST">
+        <div class="form-group">
+            <label for="genre-f">Genre: </label>
+            <select class="form-control" name="genre" id="genre-f">
+                {% for genre in genre_list %}
+                    <option value="{{ genre }}">{{ genre }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="lang-f">Languages: </label>
+            <select class="form-control" name="lang" id="lang-f">
+                {% for lang in lang_list %}
+                    <option value="{{ lang }}">{{ lang }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="comp-f">Compatibility: </label>
+            <select class="form-control" name="comp" id="comp-f">
+                {% for comp in comp_list %}
+                    <option value="{{ comp }}">{{ comp }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <label for="pub-year-begin-f">Published Between: </label>
+            </div>
+            <div class="form-group mx-sm-3 mb-2">
+                <input class="form-control" type="number" min="1900" max="2099" step="1" name="pub-year-begin" id="pub-year-begin-f" />
+            </div>
+            -
+            <div class="form-group mx-sm-3 mb-2">
+                <input class="form-control" type="number" min="1900" max="2099" step="1" name="pub-year-end" id="pub-year-end-f" />
+            </div>
+        </div>
+        <div class="form-group" style="text-align:center;">
+            <button type="submit" class="btn btn-success">Terapkan</button>
+        </div>
+    </form>
+</div>
 
-    <label for="lang-f">Languages: </label>
-    <select name="lang" id="lang-f">
-        {% for lang in lang_list %}
-            <option value="{{ lang }}">{{ lang }}</option>
-        {% endfor %}
-    </select>
-
-    <label for="comp-f">Compatibility: </label>
-    <select name="comp" id="comp-f">
-        {% for comp in comp_list %}
-            <option value="{{ comp }}">{{ comp }}</option>
-        {% endfor %}
-    </select>
-
-    <label for="pub-year-begin-f">Published Between: </label>
-    <input type="number" min="1900" max="2099" step="1" name="pub-year-begin" id="pub-year-begin-f" />
-    <label for="pub-year-end-f"> Until </label>
-    <input type="number" min="1900" max="2099" step="1" name="pub-year-end" id="pub-year-end-f" />
-
-    <button type="submit" class="btn btn-success">Terapkan</button>
-</form>
 <br>
 <form action="{{ url_for('sort') }}" method="POST">
     <label for="sort">Sort: </label>
