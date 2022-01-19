@@ -28,7 +28,16 @@
         </div>
     </nav>
     <div class="container"> 
-        {% block content %} {% endblock %}
+      <div class="row">
+        <div class="col-lg-3">
+          {% block sidebar %} {% endblock %}
+        </div>
+        <div class="col-lg-9">
+          {% block content %} {% endblock %}
+        </div>
+
+      </div>
+        
     </div>
 
     <!-- Optional JavaScript -->

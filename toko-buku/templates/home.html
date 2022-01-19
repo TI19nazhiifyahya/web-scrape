@@ -2,12 +2,7 @@
 
 <h1>{% block title %}Book Catalogue{% endblock %}</h1>
 
-{% block content %}
-<form action="{{ url_for('search') }}" method="POST">
-    <input type="search" name="search-phrs" placeholder="Search...">
-    <button type="submit">Go</button>
-</form>
-<br>
+{% block sidebar %} 
 <p>Filter</p>
 <form action="{{ url_for('filter') }}" method="POST">
     <label for="genre-f">Genre: </label>
@@ -36,7 +31,7 @@
     <label for="pub-year-end-f"> Until </label>
     <input type="number" min="1900" max="2099" step="1" name="pub-year-end" id="pub-year-end-f" />
 
-    <button type="submit">Apply</button>
+    <button type="submit" class="btn btn-success">Terapkan</button>
 </form>
 <br>
 <form action="{{ url_for('sort') }}" method="POST">
@@ -51,6 +46,17 @@
     </select>
     <button>Go</button>
 </form>
+
+{% endblock %}
+
+{% block content %}
+<form action="{{ url_for('search') }}" method="POST">
+    <div style="margin:0px auto;">
+        <input type="search" name="search-phrs" placeholder="Search...">
+        <button type="submit">Go</button>
+    </div>
+</form>
+
 
 <div class="row">
     {% if datas|length == 0 %}
