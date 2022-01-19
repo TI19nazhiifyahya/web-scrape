@@ -239,7 +239,12 @@ def filter():
         year_end = request.form['pub-year-end']
         #if genre == 'Select' and lang == 'Select' and comp == 'Select':
          #   return redirect(url_for('home'))
-        query = 'SELECT * FROM buku WHERE '
+        if genre != 'Select' or lang != 'Select' or year_begin != "" or year_end != "":
+            query = 'SELECT * FROM buku WHERE '
+        else:
+            query = 'SELECT * FROM buku '                
+            
+        
         if genre != 'Select':
             query+="genres LIKE '%"+genre+"%'"
         if lang != 'Select':
