@@ -139,7 +139,7 @@ def genre_list():
     query = "SELECT genres FROM buku"
     cursor.execute(query)
     result = cursor.fetchall()
-    genre_list = ['Select']
+    genre_list = []
     for entry in result:
         genres = entry[0].split(' / ')
         for genre in genres:
@@ -153,7 +153,7 @@ def lang_list():
     query = "SELECT language FROM buku"
     cursor.execute(query)
     result = cursor.fetchall()
-    lang_list = ['Select']
+    lang_list = []
     for entry in result:
         langs = entry
         for lang in langs:
@@ -167,7 +167,7 @@ def comp_list():
     query = "SELECT compatibility FROM buku"
     cursor.execute(query)
     result = cursor.fetchall()
-    comp_list = ['Select']
+    comp_list = []
     for entry in result:
         comps = entry[0].split(', ')
         for comp in comps:
@@ -237,6 +237,7 @@ def filter():
         comp =  request.form['comp']
         year_begin = request.form['pub-year-begin']
         year_end = request.form['pub-year-end']
+        urut_harga = request.form['urut-harga']
         #if genre == 'Select' and lang == 'Select' and comp == 'Select':
          #   return redirect(url_for('home'))
         if genre != 'Select' or lang != 'Select' or year_begin != "" or year_end != "":
@@ -264,6 +265,22 @@ def filter():
             else:
                 qy = "YEAR(publication_date) BETWEEN %s AND %s" % (year_begin, year_end)
                 query+=qy
+        if urut_harga != 'Select':
+            query += " ORDER BY "
+        else:
+            query += ""
+        if urut_harga == 'termahal-termurah':
+            query+='price DESC, title'
+        elif urut_harga == 'termurah-termahal':
+            query+='price ASC, title'
+        elif urut_harga == 'terbaru-terlama':
+            query+='publication_date DESC, title'
+        elif urut_harga == 'terlama-terbaru':
+            query+='publication_date ASC, title'
+        elif urut_harga == 'rating tertinggi-terendah':
+            query+='rating DESC, title'
+        elif urut_harga == 'rating terendah-tertinggi':
+            query+='rating ASC, title'
         
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -285,43 +302,6 @@ def filter():
             books.append(record)
         return render_template('home.html', datas = books, genre_list = genre_list(), lang_list = lang_list(), comp_list = comp_list())
       
-
-@app.route('/home/sort/', methods=['POST'])
-def sort():
-    if request.method == 'POST':
-        query = 'SELECT * FROM buku ORDER BY '
-        if request.form['sort-opt'] == 'termahal-termurah':
-            query+='price DESC, title'
-        elif request.form['sort-opt'] == 'termurah-termahal':
-            query+='price ASC, title'
-        elif request.form['sort-opt'] == 'terbaru-terlama':
-            query+='publication_date DESC, title'
-        elif request.form['sort-opt'] == 'terlama-terbaru':
-            query+='publication_date ASC, title'
-        elif request.form['sort-opt'] == 'rating tertinggi-terendah':
-            query+='rating DESC, title'
-        elif request.form['sort-opt'] == 'rating terendah-tertinggi':
-            query+='rating ASC, title'
-
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute(query)
-        result = cursor.fetchall()
-        conn.close()
-        books = []
-        for entry in result:
-            record = {
-                'id': entry[0],
-                'cover': entry[1],
-                'title': entry[2],
-                'description': entry[3],
-                'author': entry[4],
-                'publisher': entry[5],
-                'price': 'IDR ' + '{:,}'.format(entry[11]) + '.00',
-                'rating': entry[12]
-            }
-            books.append(record)
-        return render_template('home.html', datas = books, genre_list = genre_list(), lang_list = lang_list(), comp_list = comp_list())
 
 @app.route('/detail/<int:buku_id>/')
 def detail(buku_id):

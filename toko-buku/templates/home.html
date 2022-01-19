@@ -9,6 +9,7 @@
         <div class="form-group">
             <label for="genre-f">Genre: </label>
             <select class="form-control" name="genre" id="genre-f">
+                <option value="Select" selected>Select</option>
                 {% for genre in genre_list %}
                     <option value="{{ genre }}">{{ genre }}</option>
                 {% endfor %}
@@ -17,6 +18,7 @@
         <div class="form-group">
             <label for="lang-f">Languages: </label>
             <select class="form-control" name="lang" id="lang-f">
+                <option value="Select" selected>Select</option>
                 {% for lang in lang_list %}
                     <option value="{{ lang }}">{{ lang }}</option>
                 {% endfor %}
@@ -25,6 +27,7 @@
         <div class="form-group">
             <label for="comp-f">Compatibility: </label>
             <select class="form-control" name="comp" id="comp-f">
+                <option value="Select" selected>Select</option>
                 {% for comp in comp_list %}
                     <option value="{{ comp }}">{{ comp }}</option>
                 {% endfor %}
@@ -42,25 +45,24 @@
                 <input class="form-control" type="number" min="1900" max="2099" step="1" name="pub-year-end" id="pub-year-end-f" />
             </div>
         </div>
+        <div class="form-group">
+            <label for="sort">Urutkan: </label>
+            <select class="form-control" name="urut-harga" id="sort">
+                <option value="Select" selected>Select</option>
+                <option value="termahal-termurah">Termahal-Termurah</option>
+                <option value="termurah-termahal">Termurah-Termahal</option>
+                <option value="terbaru-terlama">Terbaru-Terlama</option>
+                <option value="terlama-terbaru">Terlama-Terbaru</option>
+                <option value="rating tertinggi-terendah">Rating Tertinggi-Terendah</option>
+                <option value="rating terendah-tertinggi">Rating Terendah-Tertinggi</option>
+            </select>
+        </div>
         <div class="form-group" style="text-align:center;">
             <button type="submit" class="btn btn-success">Terapkan</button>
         </div>
     </form>
 </div>
 
-<br>
-<form action="{{ url_for('sort') }}" method="POST">
-    <label for="sort">Sort: </label>
-    <select name="sort-opt" id="sort">
-        <option value="termahal-termurah">Termahal-Termurah</option>
-        <option value="termurah-termahal">Termurah-Termahal</option>
-        <option value="terbaru-terlama">Terbaru-Terlama</option>
-        <option value="terlama-terbaru">Terlama-Terbaru</option>
-        <option value="rating tertinggi-terendah">Rating Tertinggi-Terendah</option>
-        <option value="rating terendah-tertinggi">Rating Terendah-Tertinggi</option>
-    </select>
-    <button>Go</button>
-</form>
 
 {% endblock %}
 
