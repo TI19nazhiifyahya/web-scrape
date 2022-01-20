@@ -372,11 +372,55 @@ def admin():
     dataGenre = chartGenre()
     return render_template('admin.html', ratecount=ratecount, dataBahasa=dataBahasa, dataYear=dataYear, dataGenre=dataGenre)
 
-@app.route('/admin/scrape/')
+@app.route('/admin/scrape/', methods=['GET','POST'])
 def scrape():
-    return render_template('scrape.html')
+    if request.method == 'GET':
+        query = 'SELECT * FROM log'
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(query)
+        result = cursor.fetchall()
+        conn.close()
+        return render_template('scrape.html', log=result)
+    else:
+        url_list = request.form['link_textarea'].split(',')
+        report_list = []
+        for url in url_list:
+            report = []
+            report.append(url)
+            scrape_report = ''
+            add_db_report = ''
+            try:
+                book = scrape_gplay_books(url)
+                scrape_report = 'Success'
+                report.append(scrape_report)
+            except:
+                scrape_report = 'Failed'
+                report.append(scrape_report)
 
-@app.route('/admin/scrape/report/', methods=['POST'])
+            try:
+                conn = get_db_connection()
+                cursor = conn.cursor()
+                cursor.execute('INSERT INTO buku (cover,title,description,author,publisher,publication_date,genres,language,pages,compatibility,price,rating,total_rating,status) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,"visible")', (book['Cover'],book['Title'],book['Description'],book['Author'],book['Publisher'],book['Publication Date'],book['Genres'],book['Language'],book['Pages'],book['Compatibility'],book['Price'],book['Rating'],book['Number of Reviewer']))
+                conn.commit()
+                conn.close()
+                add_db_report = 'Success'
+                report.append(add_db_report)
+            except:
+                add_db_report = 'Failed'
+                report.append(add_db_report)
+            report_list.append(report)
+            
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        for rep in report_list:
+            cursor.execute('INSERT INTO log (link, scrape_status, add_to_database_status) VALUES (%s, %s, %s)', (rep[0], rep[1], rep[2]))
+            conn.commit()
+        conn.close()
+        
+        return redirect(url_for('scrape'))
+
+'''@app.route('/admin/scrape/report/', methods=['POST'])
 def scrape_run():
     url_list = request.form['link_textarea'].split(',')
     report_list = []
@@ -395,6 +439,7 @@ def scrape_run():
         
         report_list.append(report)
     return render_template('scrape_report.html', report = report_list)
+'''
 
 @app.route('/admin/book_menu/', methods = ['GET', 'POST'])
 def admin_book_menu():
