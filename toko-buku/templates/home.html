@@ -89,12 +89,11 @@
     {% else %}
         {% for data in datas %}
             <div class="col-lg-3">
-                <div aria-hidden="true" style="height: 400px; max-width: 280px;border:1px solid black;margin:10px;padding:10px;">
-                    <a href="{{ url_for('detail', buku_id=data['id']) }}"><img aria-hidden="true" style="max-height: 230px; max-width: 160px; height: 230px;" src="{{ data['cover'] }}"></a>
-                    <marquee scrollamount="5">{{ data['title'] }}</marquee>
-                    <p>Penulis : {{ data['author'] }}</p>
-                    <p>Penerbit : {{ data['publisher'] }}</p>
-                    <span>{{ data['rating'] }}</span>
+                <div aria-hidden="true" class="bg-dark text-white rounded" style="height: 400px; max-width: 290px;margin:10px;padding:10px;">
+                    <a href="{{ url_for('detail', buku_id=data['id']) }}"><img aria-hidden="true" style="max-height: 230px; width: 145px; height: 230px;" src="{{ data['cover'] }}"></a>
+                    <marquee scrollamount="5">{{ data['title'] }}</marquee> <br>
+                    <p>{{ data['author'] }}</p>
+                    <span>Rating : {{ data['rating'] }}</span><br>
                     <span>{{ data['price'] }}</span>
                 </div>
             </div>
