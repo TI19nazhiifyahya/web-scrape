@@ -1,3 +1,4 @@
+from contextlib import nullcontext
 import requests, mysql.connector, csv, os, numpy
 from flask import Flask, render_template, request, url_for, flash, redirect, send_from_directory
 from werkzeug.exceptions import abort
@@ -225,7 +226,50 @@ app.secret_key = 'thisIsSecret'
 
 @app.route('/')
 def one():
-    return redirect(url_for('home'))
+    return redirect(url_for('register'))
+
+@app.route('/register/')
+def register():
+    return render_template('register.html')
+
+@app.route('/registNew/', methods=['POST'])
+def registNew():
+    if request.method == "POST":
+        nama = request.form['namaLengkap']
+        username = request.form['username']
+        password =  request.form['password']
+        repassword = request.form['repassword']
+        error=""
+        if error != "":
+            error = nullcontext
+        if nama != "":
+            if username != "":
+                if password != "":
+                    if repassword != "":
+                        if password == repassword :
+                            conn = get_db_connection()
+                            cursor = conn.cursor()
+                            cursor.execute('INSERT INTO user (nama,username,password,role,created_timestamp) VALUES (%s,%s,%s,"user",CURRENT_TIMESTAMP)', (nama,username,password))
+                            conn.commit()
+                            conn.close()
+                            flash("User berhasil dibuat!")
+                            return redirect(url_for('register'))
+                        else:
+                            error = "Password yang dimasukkan tidak sama!"
+                    else:
+                        error = "Re-Type Password tidak boleh kosong!"
+                else:
+                    error = "Password tidak boleh kosong!"
+            else:
+                error = "Username tidak boleh kosong!"
+        else:
+            error = "Nama Lengkap tidak boleh kosong!"
+                            
+    return render_template('register.html',error=error)
+
+@app.route('/login/')
+def login():
+    return render_template('home.html')
 
 @app.route('/home/')
 def home():

@@ -1,0 +1,76 @@
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="templates/css/mystyle.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <title>{% block title %} {% endblock %}</title>
+    {% block script %} {% endblock %}
+  </head>
+  <body class="bg-secondary">
+    <nav id="mynav" class="navbar navbar-expand-md navbar-dark bg-dark">
+        <a class="navbar-brand" href="{{ url_for('home')}}">Book Catalogue - Group 6 </a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+           
+        </div>
+    </nav>
+    <br>
+    <div class="container">
+        
+        
+        <div class="row mt-4">
+            <div class="col-lg-5 offset-lg-1 bg-dark text-center">
+                <img class="rounded mx-auto d-block" style="max-width:150%; height:auto; margin:0 auto;" src="https://images.unsplash.com/photo-1472173148041-00294f0814a2?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxzZWFyY2h8OXx8ZGFyayUyMGxpYnJhcnl8ZW58MHx8MHx8&w=1000&q=80" >
+            </div>
+            <div class="col-lg-5 bg-dark pt-2">
+                <div class="form-group bg-light py-2 px-2 my-1 mx-1 rounded">
+                        <form action="{{ url_for('registNew') }}" method="POST">
+                            <div class="form-group text-center">
+                                <h4>Registrasi</h4>
+                                {% if error %} 
+                                    <p class="text-danger"><strong>Error</strong>: {{error}}</p>  
+                                {% endif %}
+                                {% with messages = get_flashed_messages() %}  
+                                    {% if messages %}  
+                                        {% for message in messages %}  
+                                                <p class="text-success">{{ message }}</p>  
+                                        {% endfor %}  
+                                    {% endif %}  
+                                {% endwith %}  
+                            </div>
+                            <label for="namaLengkap">Nama Lengkap:</label>
+                            <input class="form-control" type="text" name="namaLengkap" placeholder="Isikan Nama Lengkap">
+                            <label for="username">Username:</label>
+                            <input class="form-control" type="text" name="username" placeholder="Isikan Username"> 
+                            <label for="password">Password:</label>
+                            <input class="form-control" type="password" name="password" placeholder="Isikan Password"> 
+                            <label for="password">Re-Type Password:</label>
+                            <input class="form-control" type="password" name="repassword" placeholder="Isikan Ulang Password"> 
+                            <br>
+                            <button type="submit" class="btn btn-success btn-md btn-block">Submit</button>
+                        </form>
+                        <div class="form-group text-center">
+                            <p style="font-size:13px;">atau</p>
+                        </div>
+                        <a href="{{ url_for('login')}}" class="btn btn-info btn-block text-white">Login</a>
+                    </div>
+            </div>
+        </div>
+        
+    </div>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+  </body>
+</html>
