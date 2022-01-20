@@ -68,10 +68,15 @@
 
 {% block content %}
 <form action="{{ url_for('search') }}" method="POST">
-    <div style="margin:0px auto;">
-        <input type="search" name="search-phrs" placeholder="Search...">
-        <button type="submit">Go</button>
+    <div class="row">
+        <div class="col-md-4 offset-md-7">
+            <input class="form-control" type="search" name="search-phrs" placeholder="Ketik Kata Kunci">
+        </div>
+        <div class="">
+            <button class="btn btn-info" type="submit">Cari</button>
+        </div>
     </div>
+    
 </form>
 
 
