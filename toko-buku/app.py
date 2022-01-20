@@ -258,7 +258,7 @@ def search():
         srch_phrase = request.form['search-phrs']
         conn = get_db_connection()
         cursor = conn.cursor()
-        query = f"SELECT * FROM buku WHERE title LIKE '%{srch_phrase}%' OR author LIKE '%{srch_phrase}%'"
+        query = f"SELECT * FROM buku WHERE title LIKE '%{srch_phrase}%' OR author LIKE '%{srch_phrase}%' OR publisher LIKE '%{srch_phrase}%' OR publication_date LIKE '%{srch_phrase}%' OR genres LIKE '%{srch_phrase}%' OR language LIKE '%{srch_phrase}%'"
         cursor.execute(query)
         result = cursor.fetchall()
         books = []
@@ -311,6 +311,16 @@ def filter():
                     query+=qy
                 qy = " YEAR(publication_date) BETWEEN %s AND %s" % (year_begin, year_end)
                 query+=qy
+            elif year_begin !='' and year_end == '':
+                if genre != 'Select' or lang != 'Select' or comp != 'Select':
+                    qy = " AND"
+                    query+=qy
+                query+= " YEAR(publication_date) BETWEEN %s AND YEAR(CURDATE())" % (year_begin)
+            elif year_begin =='' and year_end != '':
+                if genre != 'Select' or lang != 'Select' or comp != 'Select':
+                    qy = " AND"
+                    query+=qy
+                query+= " YEAR(publication_date) BETWEEN YEAR('1970-01-01') AND %s" % (year_end)
             if urut != 'Select':
                 query += " ORDER BY"
             else:
