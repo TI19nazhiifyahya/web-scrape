@@ -310,7 +310,11 @@ def detail(buku_id):
 
 @app.route('/admin/')
 def admin():
-    return render_template('admin.html')
+    ratecount = countingrate()
+    dataBahasa = chartBahasa()
+    dataYear = chartYear()
+    dataGenre = chartGenre()
+    return render_template('admin.html', ratecount=ratecount, dataBahasa=dataBahasa, dataYear=dataYear, dataGenre=dataGenre)
 
 @app.route('/admin/scrape/')
 def scrape():

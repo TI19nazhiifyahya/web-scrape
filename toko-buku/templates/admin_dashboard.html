@@ -7,118 +7,21 @@
 <html>
 <head>
   <style>
-    .chartAll{
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 40px;
-    }
+    
   </style>
-<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-<script type="text/javascript">
-      google.charts.load('current', {'packages':['corechart']});
-      google.charts.setOnLoadCallback(drawChart);
 
-      function drawChart() {
 
-        var data = google.visualization.arrayToDataTable([
-            ['Rating', 'Number'],
-            {% for key, value in ratecount.items() %}
-                ['Rating {{ key }}', {{ value }}],
-            {% endfor %}
-        ]);
-     
-        var options = {
-          title: 'Data Buku Berdasarkan Rating',
-          pieHole: 0.4 
-        };
 
-        var chart = new google.visualization.PieChart(document.getElementById('chartrating'));
 
-        chart.draw(data, options);
-      }
-</script>
 
-<script type="text/javascript">
-      google.charts.load('current', {'packages':['corechart']});
-      google.charts.setOnLoadCallback(drawChart);
 
-      function drawChart() {
-        var data = google.visualization.arrayToDataTable([
-          ['Languages', 'Books'],
-          {% for i in dataBahasa %}
-            ['{{i[0]}}',{{i[1]}}],
-          {% endfor %}
-        ]);
-        
 
-        var options = {
-          title: 'Data Perbandingan Jumlah Bahasa Buku'
-        };
-
-        var chart = new google.visualization.PieChart(document.getElementById('chartbahasa'));
-
-        chart.draw(data, options);
-      }
-</script>
-
-<script type="text/javascript">
-      google.charts.load('current', {'packages':['corechart']});
-      google.charts.setOnLoadCallback(drawChart);
-
-      function drawChart() {
-        var data = google.visualization.arrayToDataTable([
-          ['Year Published', 'Books'],
-          {% for i in dataYear %}
-            ['{{i[0]}}',{{i[1]}}],
-          {% endfor %}
-        ]);
-        
-
-        var options = {
-          title: 'Data Buku per Tahun Rilis'
-        };
-
-        var chart = new google.visualization.BarChart(document.getElementById('chartyear'));
-
-        chart.draw(data, options);
-      }
- 
-</script>
-
-<script type="text/javascript">
-      google.charts.load('current', {'packages':['corechart']});
-      google.charts.setOnLoadCallback(drawChart);
-
-      function drawChart() {
-        var data = google.visualization.arrayToDataTable([
-          ['Genres ', 'Books'],
-          {% for key, value in dataGenre.items() %}
-                ['{{ key }}', {{ value }}],
-          {% endfor %}
-        ]);
-        
-
-        var options = {
-          title: 'Data Buku per Genre'
-        };
-
-        var chart = new google.visualization.PieChart(document.getElementById('chartgenre'));
-
-        chart.draw(data, options);
-      }
- 
-</script>
 
 
 </head>
 
   <body>
-    <div class="chartAll">
-      <div id="chartrating" style="width: 100%; height: 500px;"></div>
-      <div id="chartbahasa" style="width: 100%; height: 500px;"></div>
-      <div id="chartyear" style="width: 100%; height: 500px;"></div>
-      <div id="chartgenre" style="width: 100%; height: 500px;"></div>
-    </div>
+    
   </body>
 </html>
 {% endblock %}

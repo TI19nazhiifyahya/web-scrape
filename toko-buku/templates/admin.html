@@ -2,16 +2,127 @@
 
 {% block title %}Admin Page{% endblock %}
 
+{% block script %}
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script type="text/javascript">
+      google.charts.load('current', {'packages':['corechart']});
+      google.charts.setOnLoadCallback(drawChart);
+
+      function drawChart() {
+
+        var data = google.visualization.arrayToDataTable([
+            ['Rating', 'Number'],
+            {% for key, value in ratecount.items() %}
+                ['Rating {{ key }}', {{ value }}],
+            {% endfor %}
+        ]);
+     
+        var options = {
+          title: 'Data Buku Berdasarkan Rating',
+          pieHole: 0.4 
+        };
+
+        var chart = new google.visualization.PieChart(document.getElementById('chartrating'));
+
+        chart.draw(data, options);
+      }
+</script>
+<script type="text/javascript">
+    google.charts.load('current', {'packages':['corechart']});
+    google.charts.setOnLoadCallback(drawChart);
+
+    function drawChart() {
+      var data = google.visualization.arrayToDataTable([
+        ['Languages', 'Books'],
+        {% for i in dataBahasa %}
+          ['{{i[0]}}',{{i[1]}}],
+        {% endfor %}
+      ]);
+      
+
+      var options = {
+        title: 'Data Perbandingan Jumlah Bahasa Buku'
+      };
+
+      var chart = new google.visualization.PieChart(document.getElementById('chartbahasa'));
+
+      chart.draw(data, options);
+    }
+</script>
+<script type="text/javascript">
+    google.charts.load('current', {'packages':['corechart']});
+    google.charts.setOnLoadCallback(drawChart);
+
+    function drawChart() {
+      var data = google.visualization.arrayToDataTable([
+        ['Year Published', 'Books'],
+        {% for i in dataYear %}
+          ['{{i[0]}}',{{i[1]}}],
+        {% endfor %}
+      ]);
+      
+
+      var options = {
+        title: 'Data Buku per Tahun Rilis'
+      };
+
+      var chart = new google.visualization.BarChart(document.getElementById('chartyear'));
+
+      chart.draw(data, options);
+    }
+
+</script>
+<script type="text/javascript">
+    google.charts.load('current', {'packages':['corechart']});
+    google.charts.setOnLoadCallback(drawChart);
+
+    function drawChart() {
+      var data = google.visualization.arrayToDataTable([
+        ['Genres ', 'Books'],
+        {% for key, value in dataGenre.items() %}
+              ['{{ key }}', {{ value }}],
+        {% endfor %}
+      ]);
+      
+
+      var options = {
+        title: 'Data Buku per Genre'
+      };
+
+      var chart = new google.visualization.PieChart(document.getElementById('chartgenre'));
+
+      chart.draw(data, options);
+    }
+
+</script>
+{% endblock %}
+
+{% block sidebar %}
+<div class="form-group bg-dark py-2 px-2 text-white rounded">
+    <div class="text-center">
+        <h4>Menu</h4>
+    </div>
+    <br>
+    <form action="{{ url_for('admin') }}">
+        <button class="btn btn-secondary btn-lg btn-block">Dashboard</button>
+    </form>
+
+    <form action="{{ url_for('admin_book_menu') }}">
+        <button class="btn btn-light btn-lg btn-block">Control Data</button>
+    </form>
+
+    <form action="{{ url_for('scrape') }}">
+        <button class="btn btn-light btn-lg btn-block">Scraping</button>
+    </form>
+    
+</div>
+{% endblock %}
+
 {% block content %}
-<form action="{{ url_for('scrape') }}">
-    <button>Scraping</button>
-</form>
-
-<form action="{{ url_for('admin_book_menu') }}">
-    <button>Book Menu</button>
-</form>
-
-<form action="{{ url_for('admin_dashboard') }}">
-    <button>Dashboard</button>
-</form>
+<div class="chartAll">
+    <div id="chartgenre" style="width: 100%; height: 500px;"></div>
+    <div id="chartyear" style="width: 100%; height: 500px;"></div>
+    <div id="chartbahasa" style="width: 100%; height: 500px;"></div>
+    <div id="chartrating" style="width: 100%; height: 500px;"></div>
+</div>
 {% endblock %}

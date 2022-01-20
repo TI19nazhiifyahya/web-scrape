@@ -1,3 +1,12 @@
 .my-div{
     background-color: #113a8c;
 }
+.chartAll{
+    display: grid;
+    grid-template-columns: auto auto auto auto;
+    gap: 10px;
+    opacity: 0;
+  }
+.no-padding{
+    padding: 0px;
+}
