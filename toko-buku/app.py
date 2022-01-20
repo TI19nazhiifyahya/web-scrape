@@ -1,5 +1,5 @@
 import requests, mysql.connector, csv, os, numpy
-from flask import Flask, render_template, request, url_for, flash, redirect
+from flask import Flask, render_template, request, url_for, flash, redirect, send_from_directory
 from requests.api import get
 from werkzeug.exceptions import abort
 from bs4 import BeautifulSoup
@@ -238,8 +238,8 @@ def filter():
         year_begin = request.form['pub-year-begin']
         year_end = request.form['pub-year-end']
         urut_harga = request.form['urut-harga']
-        #if genre == 'Select' and lang == 'Select' and comp == 'Select':
-         #   return redirect(url_for('home'))
+        if genre == 'Select' and lang == 'Select' and comp == 'Select' and urut_harga == 'Select':
+            return redirect(url_for('home'))
         if genre != 'Select' or lang != 'Select' or year_begin != "" or year_end != "":
             query = 'SELECT * FROM buku WHERE '
         else:
@@ -367,6 +367,34 @@ def admin_book_menu():
             os.remove('temp/' + f.filename)
             #flash('Import successful!', 'info')
             return redirect(url_for('admin_book_menu'))
+        elif 'export_button' in request.form:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute('SELECT cover,title,description,author,publisher,publication_date,genres,language,pages,compatibility,price,rating,total_rating FROM buku')
+            result = cursor.fetchall()
+            conn.close()
+
+            books = []
+            for entry in result:
+                book_data = []
+                for data in entry:
+                    book_data.append(data)
+                books.append(book_data)
+            
+            f = open('temp/export_books.csv', "w+")
+            f.close()
+
+            file = open('temp/export_books.csv', 'w', newline='')
+            file_writer = csv.writer(file)
+            for book_data in books:
+                try:
+                    file_writer.writerow(book_data)
+                except:
+                    continue
+            file.close()
+            return send_from_directory('temp', 'export_books.csv', as_attachment=True)
+            
+
     else:
         conn = get_db_connection()
         cursor = conn.cursor()

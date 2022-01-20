@@ -8,12 +8,14 @@
     <br>
     <input type="file" name="file-to-import" id="import-book">
     <br>
-    <button type="submit" name="import_button" value="upload">Import</button>
+    <button type="submit" name="import_button" value="upload" class="btn btn-warning">Import</button>
 </form>
 
-<label for="export-all-books">Export All Books</label>
-<br>
-<button type="submit" id="export-all-books" formaction="">Export</button>
+<form action="{{ url_for('admin_book_menu') }}" method="POST">
+    <label for="export-all-books">Export All Books</label>
+    <br>
+    <button type="submit" name="export_button" id="export-all-books" class="btn btn-warning">Export</button>    
+</form>
 
 <table>
     <tr>
@@ -36,12 +38,12 @@
         <td></td>
         <td>
             <form action="{{ url_for('admin_edit_book', book_title = data['title']) }}" method="GET">
-                <button type="submit">Edit</button>
+                <button type="submit" class="btn btn-info">Edit</button>
             </form>
         </td>
         <td>
             <form action="{{ url_for('admin_book_menu') }}" method='POST'>
-                <button type="submit" name="delete_button" value='{{ data["title"] }}'>Delete</button>
+                <button type="submit" name="delete_button" value='{{ data["title"] }}' class="btn btn-danger">Delete</button>
             </form>
         </td>
     </tr>
