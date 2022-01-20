@@ -80,7 +80,7 @@
       var data = google.visualization.arrayToDataTable([
         ['Genres ', 'Books'],
         {% for key, value in dataGenre.items() %}
-              ['{{ key }}', {{ value }}],
+              ['{{ key }}'.replace("&amp;", "&"), {{ value }}],
         {% endfor %}
       ]);
       
