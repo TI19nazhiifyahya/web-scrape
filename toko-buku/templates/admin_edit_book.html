@@ -56,6 +56,18 @@
     <input type="text" name="num rev" value="{{ book_data[13] }}">
     <br>
 
+    <label for="status">Status:</label>
+    <select name="status" id="status">
+        {% if book_data[14] == 'visible' %}
+        <option value="visible" selected>Visible</option>
+        <option value="hide">Hide</option>
+        {% else %}
+        <option value="visible">Visible</option>
+        <option value="hide" selected>Hide</option>
+        {% endif %}
+    </select>
+    <br>
+
     <button type="submit">Edit</button>
 </form>
 

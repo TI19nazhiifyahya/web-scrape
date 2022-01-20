@@ -116,7 +116,8 @@ def scrape_gplay_books(url):
         'Compatibility':cmptblty,
         'Price':price_final,
         'Rating':rating,
-        'Number of Reviewer':rev_num}
+        'Number of Reviewer':rev_num,
+        'Status':'visible'}
 
     return book_info
 
@@ -234,17 +235,20 @@ def home():
     result = cursor.fetchall()
     datas = []
     for entry in result:
-        record = {
-            'id': entry[0],
-            'cover': entry[1],
-            'title': entry[2],
-            'description': entry[3],
-            'author': entry[4],
-            'publisher': entry[5],
-            'price': 'IDR ' + '{:,}'.format(entry[11]) + '.00',
-            'rating': entry[12]
-        }
-        datas.append(record)
+        if entry[14] == 'visible':
+            record = {
+                'id': entry[0],
+                'cover': entry[1],
+                'title': entry[2],
+                'description': entry[3],
+                'author': entry[4],
+                'publisher': entry[5],
+                'price': 'IDR ' + '{:,}'.format(entry[11]) + '.00',
+                'rating': entry[12]
+            }
+            datas.append(record)
+        else:
+            continue
     conn.close()
     return render_template('home.html', datas=datas, genre_list = genre_list(), lang_list = lang_list(), comp_list = comp_list())
 
@@ -372,7 +376,7 @@ def scrape_run():
             book = scrape_gplay_books(url)
             conn = get_db_connection()
             cursor = conn.cursor()
-            cursor.execute('INSERT INTO buku (cover,title,description,author,publisher,publication_date,genres,language,pages,compatibility,price,rating,total_rating) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)', (book['Cover'],book['Title'],book['Description'],book['Author'],book['Publisher'],book['Publication Date'],book['Genres'],book['Language'],book['Pages'],book['Compatibility'],book['Price'],book['Rating'],book['Number of Reviewer']))
+            cursor.execute('INSERT INTO buku (cover,title,description,author,publisher,publication_date,genres,language,pages,compatibility,price,rating,total_rating,status) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,"visible")', (book['Cover'],book['Title'],book['Description'],book['Author'],book['Publisher'],book['Publication Date'],book['Genres'],book['Language'],book['Pages'],book['Compatibility'],book['Price'],book['Rating'],book['Number of Reviewer']))
             conn.commit()
             conn.close()
             report+= ' success\n'
@@ -439,7 +443,7 @@ def admin_book_menu():
     else:
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute('SELECT title, author, genres, publisher, publication_date FROM buku')
+        cursor.execute('SELECT title, author, genres, publisher, publication_date, status FROM buku')
         result = cursor.fetchall()
         conn.close()
         data = []
@@ -450,6 +454,7 @@ def admin_book_menu():
                 'genres': entry[2],
                 'publisher': entry[3],
                 'publication_date': entry[4],
+                'status': entry[5]
             }
             data.append(book)
         return render_template('admin_book_menu.html', book_data = data)
@@ -478,12 +483,13 @@ def admin_edit_book(book_title):
             'price': request.form['prc'],
             'rating': request.form['rtg'],
             'num of review': request.form['num rev'],
+            'status':request.form['status']
         }
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute('SELECT id FROM buku WHERE title=%s', (book_title,))
         book_id = str(cursor.fetchone()[0])
-        cursor.execute('UPDATE buku SET cover=%s, title=%s, description=%s, author=%s, publisher=%s, publication_date=%s, genres=%s, language=%s, pages=%s, compatibility=%s, price=%s, rating=%s, total_rating=%s WHERE id=%s', (new_data['cover'], new_data['title'], new_data['desc'], new_data['author'], new_data['publisher'], new_data['publish date'], new_data['genres'], new_data['language'], new_data['pages'], new_data['compatibility'], new_data['price'], new_data['rating'], new_data['num of review'], book_id))
+        cursor.execute('UPDATE buku SET cover=%s, title=%s, description=%s, author=%s, publisher=%s, publication_date=%s, genres=%s, language=%s, pages=%s, compatibility=%s, price=%s, rating=%s, total_rating=%s, status=%s WHERE id=%s', (new_data['cover'], new_data['title'], new_data['desc'], new_data['author'], new_data['publisher'], new_data['publish date'], new_data['genres'], new_data['language'], new_data['pages'], new_data['compatibility'], new_data['price'], new_data['rating'], new_data['num of review'], new_data['status'], book_id))
         conn.commit()
         conn.close()
         return redirect(url_for('admin_edit_book', book_title=new_data['title']))

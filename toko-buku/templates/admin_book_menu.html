@@ -73,7 +73,7 @@
         <td>{{ data['genres'] }}</td>
         <td>{{ data['publisher'] }}</td>
         <td>{{ data['publication_date'] }}</td>
-        <td></td>
+        <td>{{ data['status'] }}</td>
         <td>
             <form action="{{ url_for('admin_edit_book', book_title = data['title']) }}" method="GET">
                 <button type="submit" class="btn btn-info">Edit</button>
