@@ -254,7 +254,7 @@ def search():
         srch_phrase = request.form['search-phrs']
         conn = get_db_connection()
         cursor = conn.cursor()
-        query = f"SELECT * FROM buku WHERE title LIKE '%{srch_phrase}%' OR author LIKE '%{srch_phrase}%'"
+        query = f"SELECT * FROM buku WHERE title LIKE '%{srch_phrase}%' OR author LIKE '%{srch_phrase}%' OR publisher LIKE '%{srch_phrase}%' OR publication_date LIKE '%{srch_phrase}%' OR genres LIKE '%{srch_phrase}%' OR language LIKE '%{srch_phrase}%'"
         cursor.execute(query)
         result = cursor.fetchall()
         books = []
