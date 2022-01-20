@@ -232,12 +232,10 @@ app.secret_key = 'thisIsSecret'
 def one():
     return redirect(url_for('register'))
 
-@app.route('/register/')
+@app.route('/register/', methods=['GET','POST'])
 def register():
-    return render_template('register.html')
-
-@app.route('/registNew/', methods=['POST'])
-def registNew():
+    if request.method == "GET":
+        return render_template('register.html')
     if request.method == "POST":
         nama = request.form['namaLengkap']
         username = request.form['username']
