@@ -2,32 +2,70 @@
 
 {% block title %}Admin Book Menu{% endblock %}
 
+{% block sidebar %}
+<div class="form-group bg-dark py-2 px-2 text-white rounded">
+    <div class="text-center">
+        <h4>Menu</h4>
+    </div>
+    <br>
+    <form action="{{ url_for('admin') }}">
+        <button class="btn btn-light btn-lg btn-block">Dashboard</button>
+    </form>
+
+    <form action="{{ url_for('admin_book_menu') }}">
+        <button class="btn btn-secondary btn-lg btn-block">Control Data</button>
+    </form>
+
+    <form action="{{ url_for('scrape') }}">
+        <button class="btn btn-light btn-lg btn-block">Scraping</button>
+    </form>
+    
+</div>
+{% endblock %}
+
 {% block content %}
 <form enctype = "multipart/form-data" action="{{ url_for('admin_book_menu') }}" method="POST">
-    <label for="import-book">Import Book</label>
-    <br>
-    <input type="file" name="file-to-import" id="import-book">
-    <br>
-    <button type="submit" name="import_button" value="upload" class="btn btn-warning">Import</button>
+    <div class="row bg-dark text-white rounded py-2">
+        <div class="col-lg-4">
+            <div class="row">
+                <div class="col-md-7 text-right pt-1">
+                    <label for="export-all-books">Export All Books</label>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" name="export_button" id="export-all-books" class="btn btn-warning">Export</button>
+                </div>
+                    
+            </div>
+        </div>
+        <div class="col-lg-8">
+            <div class="row">
+                <div class="col-md-4 pt-1 text-right">
+                    <label for="import-book">Import Book</label>
+                </div>
+                <div class="col-md-3 text-right pt-1">
+                    <input type="file" name="file-to-import" id="import-book">
+                </div>
+                <div class="col-md-4 text-right">
+                    <button type="submit" name="import_button" value="upload" class="btn btn-warning">Import</button>
+                </div>
+            </div>
+        </div>
+        
+    </div>
 </form>
 
-<form action="{{ url_for('admin_book_menu') }}" method="POST">
-    <label for="export-all-books">Export All Books</label>
-    <br>
-    <button type="submit" name="export_button" id="export-all-books" class="btn btn-warning">Export</button>    
-</form>
-
-<table>
-    <tr>
-        <th>Title</th>
-        <th>Author</th>
-        <th>Genres</th>
-        <th>Publisher</th>
-        <th>Publication Date</th>
-        <th>Status</th>
-        <th>Edit</th>
-        <th>Delete</th>
-    </tr>
+<table class="table">
+    <thead>
+        <tr>
+            <th class="align-middle text-center">Title</th>
+            <th class="align-middle text-center">Author</th>
+            <th class="align-middle text-center">Genres</th>
+            <th class="align-middle text-center">Publisher</th>
+            <th class="align-middle text-center">Publication Date</th>
+            <th class="align-middle text-center">Status</th>
+            <th class="align-middle text-center" colspan="2">Action</th>
+        </tr>
+    </thead>
     {% for data in book_data: %}
     <tr>
         <td>{{ data['title'] }}</td>
