@@ -1,6 +1,5 @@
 import requests, mysql.connector, csv, os, numpy
 from flask import Flask, render_template, request, url_for, flash, redirect, send_from_directory
-from requests.api import get
 from werkzeug.exceptions import abort
 from bs4 import BeautifulSoup
 
@@ -13,18 +12,6 @@ def get_db_connection():
     )
 
     return conn
-
-def chartBahasa():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute('SELECT language, count(*) as number FROM buku GROUP BY language;')
-    result = cursor.fetchall()
-    dataBahasa = []
-    for entry in result:
-        record = [entry[0],entry[1]]
-        dataBahasa.append(record)
-    conn.close()
-    return dataBahasa
 
 def get_buku(buku_id):
     conn = get_db_connection()
@@ -175,6 +162,63 @@ def comp_list():
                 comp_list.append(comp)
     return comp_list
 
+def countingrate():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT rating FROM buku')
+    result = cursor.fetchall()
+    datarating = []
+    for all in result:
+        input = all[0]
+        input = str(input)
+        input = list(input)
+        input = int(input[0])
+        datarating.append(input)
+    datarating = numpy.array(datarating)
+    ratecount = {}
+    for i in range(5):
+        ratecount[i+1] = numpy.count_nonzero(datarating == i+1)
+    return ratecount
+
+def chartYear():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT EXTRACT(year FROM publication_date) AS year, COUNT(*) AS number FROM buku GROUP BY EXTRACT(year FROM publication_date);')
+    result = cursor.fetchall()
+    dataYear = []
+    for entry in result:
+        record = [entry[0],entry[1]]
+        dataYear.append(record)
+    conn.close()
+    return dataYear
+
+def chartGenre():
+    genres = genre_list()
+    dataGenre = {}
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    for genre in genres:
+        like = "%"+genre+"%"
+        query = f"SELECT COUNT(genres) FROM buku WHERE genres LIKE '{like}'"
+        cursor.execute(query)
+        value = cursor.fetchone()
+        value = value[0]
+        dataGenre[genre]=value
+    conn.close()      
+    return dataGenre
+
+def chartBahasa():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT language, count(*) as number FROM buku GROUP BY language;')
+    result = cursor.fetchall()
+    dataBahasa = []
+    for entry in result:
+        record = [entry[0],entry[1]]
+        dataBahasa.append(record)
+    conn.close()
+    return dataBahasa
+
 app = Flask(__name__)
 app.secret_key = 'thisIsSecret'
 
@@ -237,70 +281,68 @@ def filter():
         comp =  request.form['comp']
         year_begin = request.form['pub-year-begin']
         year_end = request.form['pub-year-end']
-        urut_harga = request.form['urut-harga']
-        if genre == 'Select' and lang == 'Select' and comp == 'Select' and urut_harga == 'Select':
+        urut = request.form['urut-harga']
+        if genre == 'Select' and lang == 'Select' and comp == 'Select' and year_begin =='' and year_end == '' and urut == 'Select':
             return redirect(url_for('home'))
-        if genre != 'Select' or lang != 'Select' or year_begin != "" or year_end != "":
-            query = 'SELECT * FROM buku WHERE '
         else:
-            query = 'SELECT * FROM buku '                
+            if genre != 'Select' or lang != 'Select' or year_begin != '' or year_end != '':
+                query = 'SELECT * FROM buku WHERE'
+            else:
+                query = 'SELECT * FROM buku'                
+                
             
-        
-        if genre != 'Select':
-            query+="genres LIKE '%"+genre+"%'"
-        if lang != 'Select':
             if genre != 'Select':
-                query+=" AND language LIKE '%"+lang+"%'"
-            else:
-                query+="language LIKE '%"+lang+"%'"
-        if comp != 'Select':
-            if genre != 'Select' or lang != 'Select':
-                query+=" AND compatibility LIKE '%"+comp+"%'"
-            else:
-                query+="compatibility LIKE '%"+comp+"%'"
-        if year_begin and year_end:
-            if genre != 'Select' or lang != 'Select' or comp != 'Select':
-                qy = " AND YEAR(publication_date) BETWEEN %s AND %s" % (year_begin, year_end)
+                query+=" genres LIKE '%"+genre+"%'"
+            if lang != 'Select':
+                if genre != 'Select':
+                    query+=" AND"
+                query+=" language LIKE '%"+lang+"%'"
+            if comp != 'Select':
+                if genre != 'Select' or lang != 'Select':
+                    query+=" AND"
+                query+=" compatibility LIKE '%"+comp+"%'"
+            if year_begin !='' and year_end != '':
+                if genre != 'Select' or lang != 'Select' or comp != 'Select':
+                    qy = " AND"
+                    query+=qy
+                qy = " YEAR(publication_date) BETWEEN %s AND %s" % (year_begin, year_end)
                 query+=qy
+            if urut != 'Select':
+                query += " ORDER BY"
             else:
-                qy = "YEAR(publication_date) BETWEEN %s AND %s" % (year_begin, year_end)
-                query+=qy
-        if urut_harga != 'Select':
-            query += " ORDER BY "
-        else:
-            query += ""
-        if urut_harga == 'termahal-termurah':
-            query+='price DESC, title'
-        elif urut_harga == 'termurah-termahal':
-            query+='price ASC, title'
-        elif urut_harga == 'terbaru-terlama':
-            query+='publication_date DESC, title'
-        elif urut_harga == 'terlama-terbaru':
-            query+='publication_date ASC, title'
-        elif urut_harga == 'rating tertinggi-terendah':
-            query+='rating DESC, title'
-        elif urut_harga == 'rating terendah-tertinggi':
-            query+='rating ASC, title'
-        
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute(query)
-        result = cursor.fetchall()
-        conn.close()
-        books = []
-        for entry in result:
-            record = {
-                'id': entry[0],
-                'cover': entry[1],
-                'title': entry[2],
-                'description': entry[3],
-                'author': entry[4],
-                'publisher': entry[5],
-                'price': 'IDR ' + '{:,}'.format(entry[11]) + '.00',
-                'rating': entry[12]
-            }
-            books.append(record)
-        return render_template('home.html', datas = books, genre_list = genre_list(), lang_list = lang_list(), comp_list = comp_list())
+                query += ""
+            if urut == 'termahal-termurah':
+                query+=' price DESC, title'
+            elif urut == 'termurah-termahal':
+                query+=' price ASC, title'
+            elif urut == 'terbaru-terlama':
+                query+=' publication_date DESC, title'
+            elif urut == 'terlama-terbaru':
+                query+=' publication_date ASC, title'
+            elif urut == 'rating tertinggi-terendah':
+                query+=' rating DESC, title'
+            elif urut == 'rating terendah-tertinggi':
+                query+=' rating ASC, title'
+            
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute(query)
+            result = cursor.fetchall()
+            conn.close()
+            books = []
+            for entry in result:
+                record = {
+                    'id': entry[0],
+                    'cover': entry[1],
+                    'title': entry[2],
+                    'description': entry[3],
+                    'author': entry[4],
+                    'publisher': entry[5],
+                    'price': 'IDR ' + '{:,}'.format(entry[11]) + '.00',
+                    'rating': entry[12]
+                }
+                books.append(record)
+            return render_template('home.html', datas = books, genre_list = genre_list(), lang_list = lang_list(), comp_list = comp_list())
       
 
 @app.route('/detail/<int:buku_id>/')
@@ -365,7 +407,6 @@ def admin_book_menu():
                 conn.close()
             file.close()
             os.remove('temp/' + f.filename)
-            #flash('Import successful!', 'info')
             return redirect(url_for('admin_book_menu'))
         elif 'export_button' in request.form:
             conn = get_db_connection()
@@ -413,10 +454,6 @@ def admin_book_menu():
             data.append(book)
         return render_template('admin_book_menu.html', book_data = data)
 
-@app.route('/admin/book_menu/export_all/')
-def admin_export_all_books():
-    return 'export'
-
 @app.route('/admin/book_menu/edit_book/<book_title>/', methods=['GET', 'POST'])
 def admin_edit_book(book_title):
     if request.method == 'GET':
@@ -458,57 +495,3 @@ def admin_dashboard():
     dataYear = chartYear()
     dataGenre = chartGenre()
     return render_template('admin_dashboard.html', ratecount=ratecount, dataBahasa=dataBahasa, dataYear=dataYear, dataGenre=dataGenre)
-
-def countingrate():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute('SELECT rating FROM buku')
-    result = cursor.fetchall()
-    datarating = []
-    for all in result:
-        input = all[0]
-        input = str(input)
-        input = list(input)
-        input = int(input[0])
-        datarating.append(input)
-    datarating = numpy.array(datarating)
-    ratecount = {}
-    for i in range(5):
-        ratecount[i+1] = numpy.count_nonzero(datarating == i+1)
-    return ratecount
-
-def chartYear():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute('SELECT EXTRACT(year FROM publication_date) AS year, COUNT(*) AS number FROM buku GROUP BY EXTRACT(year FROM publication_date);')
-    result = cursor.fetchall()
-    dataYear = []
-    for entry in result:
-        record = [entry[0],entry[1]]
-        dataYear.append(record)
-    conn.close()
-    return dataYear
-
-def chartGenre():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    query = "SELECT DISTINCT genres FROM buku"
-    cursor.execute(query)
-    result = cursor.fetchall()
-    genre_list = []
-    for all in result:
-        input = all[0].split(' / ')
-        for i in input:
-            genre_list.append(i)
-    genre_list = list(dict.fromkeys(genre_list))
-    dataGenre = {}
-    for genres in genre_list:
-        like = "%"+genres+"%"
-        query = f"SELECT COUNT(genres) FROM buku WHERE genres LIKE '{like}'"
-        cursor.execute(query)
-        value = cursor.fetchone()
-        value = value[0]
-        dataGenre[genres]=value
-    conn.close()     
-    print(dataGenre)  
-    return dataGenre
