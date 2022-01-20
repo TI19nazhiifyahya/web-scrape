@@ -2,12 +2,44 @@
 
 {% block title %}Scraping Page{% endblock %}
 
+{% block sidebar %}
+<div class="form-group bg-dark py-2 px-2 text-white rounded">
+    <div class="text-center">
+        <h4>Menu</h4>
+    </div>
+    <br>
+    <form action="{{ url_for('admin') }}">
+        <button class="btn btn-light btn-lg btn-block">Dashboard</button>
+    </form>
+
+    <form action="{{ url_for('admin_book_menu') }}">
+        <button class="btn btn-light btn-lg btn-block">Control Data</button>
+    </form>
+
+    <form action="{{ url_for('scrape') }}">
+        <button class="btn btn-secondary btn-lg btn-block">Scraping</button>
+    </form>
+    
+</div>
+{% endblock %}
+
 {% block content %}
 <form action="{{ url_for('scrape_run') }}" method="POST">
-    <label for="link-to-scrape">Link to Scrape (1 link 1 book and comma-separated): </label>
-    <br>
-    <textarea name="link_textarea" id="link-to-scrape" cols="100" rows="10"></textarea>
-    <br>
-    <button type="submit" class="btn btn-primary">Scrape!</button>
+    <div class="row bg-dark text-center text-white rounded py-1">
+        <div class="col-md-11">
+            <label for="link-to-scrape">Link to Scrape (1 link 1 book and comma-separated): </label>
+        </div>
+    </div>
+    <div class="row mt-3">
+        <div class="col-md-12 px-0">
+            <textarea class="form-control" name="link_textarea" id="link-to-scrape" cols="100" rows="10"></textarea>
+        </div>
+    </div>
+    <div class="row mt-1">
+        <div class="col-md-12 px-0">
+            <button type="submit" class="btn btn-success btn-md btn-block">Scrape!</button>
+        </div>
+    </div>
+    
 </form>
 {% endblock %}
