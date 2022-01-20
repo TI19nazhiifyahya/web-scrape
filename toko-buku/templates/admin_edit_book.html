@@ -3,62 +3,106 @@
 {% block title %}Edit Book Information{% endblock %}
 
 {% block content %}
-<img src="{{ book_data[1] }}" alt="Book Cover">
+<div class="text-center">
+<img src="{{ book_data[1] }}" alt="Book Cover" class="img-fluid rounded">
+</div>
+<br>
 <form action="{{ url_for('admin_edit_book', book_title = book_data[2]) }}" method="POST">
-    <label for="cover-url">Cover URL:</label>
-    <input type="text" name="cvr" value="{{ book_data[1] }}">
-    <br>
+    <div class="row mb-3">
+    <label for="cover-url" class="col-sm-2 col-form-label">Cover URL:</label>
+    <div class="col-sm-9">
+    <input type="text" class="form-control" name="cvr" value="{{ book_data[1] }}">
+    </div>
+    </div>
 
-    <label for="title">Title:</label>
-    <input type="text" name="ttl" value="{{ book_data[2] }}">
-    <br>
+    <div class="row mb-3">
+    <label for="title" class="col-sm-2 col-form-label">Title:</label>
+    <div class="col-sm-9">
+    <input type="text" class="form-control" name="ttl" value="{{ book_data[2] }}">
+    </div>
+    </div>
 
-    <label for="desc">Description:</label>
-    <textarea name="dsc" id="" cols="100" rows="15">{{ book_data[3] }}</textarea>
-    <br>
+    <div class="row mb-3">
+    <label for="desc" class="col-sm-2 col-form-label">Description:</label>
+    <div class="col-sm-9">
+    <textarea name="dsc" class="form-control" id="" cols="100" rows="15">{{ book_data[3] }}</textarea>
+    </div>
+    </div>
 
-    <label for="author">Author:</label>
-    <input type="text" name="auth" value="{{ book_data[4] }}">
-    <br>
+    <div class="row mb-3">
+    <label for="author" class="col-sm-2 col-form-label">Author:</label>
+    <div class="col-sm-9">
+    <input type="text" class="form-control" name="auth" value="{{ book_data[4] }}">
+    </div>
+    </div>
 
-    <label for="publisher">Publisher:</label>
-    <input type="text" name="pub" value="{{ book_data[5] }}">
-    <br>
+    <div class="row mb-3">
+    <label for="publisher" class="col-sm-2 col-form-label">Publisher:</label>
+    <div class="col-sm-9">
+    <input type="text" class="form-control" name="pub" value="{{ book_data[5] }}">
+    </div>
+    </div>
 
-    <label for="publish date">Publication Date:</label>
-    <input type="text" name="pub date" value="{{ book_data[6] }}">
-    <br>
+    <div class="row mb-3">
+    <label for="publish date" class="col-sm-2 col-form-label">Publication Date:</label>
+    <div class="col-sm-9">
+    <input type="text" class="form-control" name="pub date" value="{{ book_data[6] }}">
+    </div>
+    </div>
 
-    <label for="genres">Genres:</label>
-    <input type="text" name="gen" value="{{ book_data[7] }}">
-    <br>
+    <div class="row mb-3">
+    <label for="genres" class="col-sm-2 col-form-label">Genres:</label>
+    <div class="col-sm-9">
+    <input type="text" class="form-control" name="gen" value="{{ book_data[7] }}">
+    </div>
+    </div>
 
-    <label for="language">Language:</label>
-    <input type="text" name="lang" value="{{ book_data[8] }}">
-    <br>
+    <div class="row mb-3">
+    <label for="language" class="col-sm-2 col-form-label">Language:</label>
+    <div class="col-sm-9">
+    <input type="text" class="form-control" name="lang" value="{{ book_data[8] }}">
+    </div>
+    </div>
 
-    <label for="pages">Pages:</label>
-    <input type="text" name="pg" value="{{ book_data[9] }}">
-    <br>
+    <div class="row mb-3">
+    <label for="pages" class="col-sm-2 col-form-label">Pages:</label>
+    <div class="col-sm-9">
+    <input type="text" class="form-control" name="pg" value="{{ book_data[9] }}">
+    </div>
+    </div>
 
-    <label for="compatibility">Compatibility:</label>
-    <input type="text" name="comp" value="{{ book_data[10] }}">
-    <br>
+    <div class="row mb-3">
+    <label for="compatibility" class="col-sm-2 col-form-label">Compatibility:</label>
+    <div class="col-sm-9">
+    <input type="text" class="form-control" name="comp" value="{{ book_data[10] }}">
+    </div>
+    </div>
 
-    <label for="price">Price (IDR):</label>
-    <input type="text" name="prc" value="{{ book_data[11] }}">
-    <br>
+    <div class="row mb-3">
+    <label for="price" class="col-sm-2 col-form-label">Price (IDR):</label>
+    <div class="col-sm-9">
+    <input type="text" class="form-control" name="prc" value="{{ book_data[11] }}">
+    </div>
+    </div>
 
-    <label for="rating">Rating:</label>
-    <input type="text" name="rtg" value="{{ book_data[12] }}">
-    <br>
+    <div class="row mb-3">
+    <label for="rating" class="col-sm-2 col-form-label">Rating:</label>
+    <div class="col-sm-9">
+    <input type="text" class="form-control" name="rtg" value="{{ book_data[12] }}">
+    </div>
+    </div>
     
-    <label for="num of review">Number of Review:</label>
-    <input type="text" name="num rev" value="{{ book_data[13] }}">
-    <br>
+    <div class="row mb-3">
+    <label for="num of review" class="col-sm-2 col-form-label">Number of Review:</label>
+    <div class="col-sm-9">
+    <input type="text" class="form-control" name="num rev" value="{{ book_data[13] }}">
+    </div>
+    </div>
 
-    <label for="status">Status:</label>
-    <select name="status" id="status">
+    <div class="row mb-3">
+    <label for="status" class="col-sm-2 col-form-label">Status:</label>
+    <div class="col-sm-9">
+    <select name="status" id="status" class="form-control">
         {% if book_data[14] == 'visible' %}
         <option value="visible" selected>Visible</option>
         <option value="hide">Hide</option>
@@ -67,12 +111,18 @@
         <option value="hide" selected>Hide</option>
         {% endif %}
     </select>
-    <br>
+    </div>
+    </div>
 
-    <button type="submit">Edit</button>
+    <div class="container" role="main">
+
+        <div class="center-block text-center">
+            <button type="submit" class="btn btn-primary">Edit</button>
 </form>
 
 <form action="{{ url_for('admin_book_menu') }}">
-    <button>Cancel</button>
+    <button class="btn btn-danger">Cancel</button>
 </form>
+</div>
+</div> 
 {% endblock %}
