@@ -403,7 +403,7 @@ def filter():
             if genre == 'Select' and lang == 'Select' and comp == 'Select' and year_begin =='' and year_end == '' and urut == 'Select':
                 return redirect(url_for('home'))
             else:
-                if genre != 'Select' or lang != 'Select' or year_begin != '' or year_end != '':
+                if genre != 'Select' or lang != 'Select' or comp != 'Select' or year_begin != '' or year_end != '':
                     query = 'SELECT * FROM buku WHERE'
                 else:
                     query = 'SELECT * FROM buku'                
