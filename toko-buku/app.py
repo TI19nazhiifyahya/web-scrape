@@ -1,8 +1,12 @@
 from contextlib import nullcontext
 import requests, mysql.connector, csv, os, numpy
-from flask import Flask, render_template, request, url_for, flash, redirect, send_from_directory
+from flask import Flask, render_template, request, url_for, flash, redirect, send_from_directory, session
 from werkzeug.exceptions import abort
 from bs4 import BeautifulSoup
+from google_auth_oauthlib.flow import Flow
+from pip._vendor import cachecontrol
+from google.oauth2 import id_token
+import google.auth.transport.requests
 
 def get_db_connection():
     conn = mysql.connector.connect(
@@ -27,10 +31,6 @@ def get_buku(buku_id):
             'author': entry[4],
             'publisher': entry[5],
             'date': entry[6],
-            'genres': entry[7],
-            'languages': entry[8],
-            'rating':entry[12],
-            'total_rating': entry[13],
     }
     conn.close()
     if datas is None:
@@ -228,9 +228,19 @@ def chartBahasa():
 app = Flask(__name__)
 app.secret_key = 'thisIsSecret'
 
+os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
+
+GOOGLE_CLIENT_ID = "209526088564-a0eig4vdics4crdgpitg5dnp4ffc73en.apps.googleusercontent.com"
+client_secrets_file = 'client_secret_209526088564-a0eig4vdics4crdgpitg5dnp4ffc73en.apps.googleusercontent.com.json'
+
+flow = Flow.from_client_secrets_file(
+    client_secrets_file=client_secrets_file,
+    scopes=["https://www.googleapis.com/auth/userinfo.profile", "https://www.googleapis.com/auth/userinfo.email", "openid"],
+    redirect_uri="http://127.0.0.1:5000/callback")
+
 @app.route('/')
 def one():
-    return redirect(url_for('register'))
+    return redirect(url_for('home'))
 
 @app.route('/register/', methods=['GET','POST'])
 def register():
@@ -269,9 +279,63 @@ def register():
                             
     return render_template('register.html',error=error)
 
-@app.route('/login/')
+@app.route('/login/', methods=['GET', 'POST'])
 def login():
-    return render_template('home.html')
+    if request.method == 'POST':
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT username, password, role FROM user')
+        result = cursor.fetchall()
+        conn.close()
+        user = request.form['username']
+        password = request.form['password']
+        
+        for entry in result:
+            if entry[0] == user and entry[1] == password:
+                session['user'] = request.form['username']
+                session['role'] = entry[2]
+                return redirect(url_for('home'))
+        flash('username atau password salah!')
+        return render_template('login.html')
+
+    else:    
+        return render_template('login.html')
+
+@app.route('/login_google/', methods=['POST'])
+def login_google():
+    authorization_url, state = flow.authorization_url()
+    session['state'] = state
+    return redirect(authorization_url)
+
+@app.route('/logout/')
+def logout():
+    if 'user' in session:
+        session.clear()
+        return redirect(url_for('home'))
+    else:
+        return redirect(url_for('login'))
+
+@app.route('/callback')
+def callback():
+    flow.fetch_token(authorization_response = request.url)
+
+    if not session['state'] == request.args['state']:
+        abort(500)
+
+    credentials = flow.credentials
+    request_session = requests.session()
+    cached_session = cachecontrol.CacheControl(request_session)
+    token_request = google.auth.transport.requests.Request(session=cached_session)
+
+    id_info = id_token.verify_oauth2_token(
+        id_token=credentials._id_token,
+        request=token_request,
+        audience=GOOGLE_CLIENT_ID
+    )
+
+    session["user"] = id_info.get("name")
+    session['role'] = 'user'
+    return redirect(url_for('home'))
 
 @app.route('/home/')
 def home():
@@ -301,94 +365,13 @@ def home():
 @app.route('/home/search/', methods=['POST'])
 def search():
     if request.method == 'POST':
-        srch_phrase = request.form['search-phrs']
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        query = f"SELECT * FROM buku WHERE title LIKE '%{srch_phrase}%' OR author LIKE '%{srch_phrase}%' OR publisher LIKE '%{srch_phrase}%' OR publication_date LIKE '%{srch_phrase}%' OR genres LIKE '%{srch_phrase}%' OR language LIKE '%{srch_phrase}%'"
-        cursor.execute(query)
-        result = cursor.fetchall()
-        books = []
-        for entry in result:
-            record = {
-                'id': entry[0],
-                'cover': entry[1],
-                'title': entry[2],
-                'description': entry[3],
-                'author': entry[4],
-                'publisher': entry[5],
-                'price': 'IDR ' + '{:,}'.format(entry[11]) + '.00',
-                'rating': entry[12]
-            }
-            books.append(record)
-        conn.close()
-        return render_template('home.html', datas = books, genre_list = genre_list(), lang_list = lang_list(), comp_list = comp_list())
-
-@app.route('/home/filter/', methods=['POST'])
-def filter():
-    if request.method == 'POST':
-        genre = request.form['genre']
-        lang = request.form['lang']
-        comp =  request.form['comp']
-        year_begin = request.form['pub-year-begin']
-        year_end = request.form['pub-year-end']
-        urut = request.form['urut-harga']
-        if genre == 'Select' and lang == 'Select' and comp == 'Select' and year_begin =='' and year_end == '' and urut == 'Select':
-            return redirect(url_for('home'))
-        else:
-            if genre != 'Select' or lang != 'Select' or year_begin != '' or year_end != '':
-                query = 'SELECT * FROM buku WHERE'
-            else:
-                query = 'SELECT * FROM buku'                
-                
-            
-            if genre != 'Select':
-                query+=" genres LIKE '%"+genre+"%'"
-            if lang != 'Select':
-                if genre != 'Select':
-                    query+=" AND"
-                query+=" language LIKE '%"+lang+"%'"
-            if comp != 'Select':
-                if genre != 'Select' or lang != 'Select':
-                    query+=" AND"
-                query+=" compatibility LIKE '%"+comp+"%'"
-            if year_begin !='' and year_end != '':
-                if genre != 'Select' or lang != 'Select' or comp != 'Select':
-                    qy = " AND"
-                    query+=qy
-                qy = " YEAR(publication_date) BETWEEN %s AND %s" % (year_begin, year_end)
-                query+=qy
-            elif year_begin !='' and year_end == '':
-                if genre != 'Select' or lang != 'Select' or comp != 'Select':
-                    qy = " AND"
-                    query+=qy
-                query+= " YEAR(publication_date) BETWEEN %s AND YEAR(CURDATE())" % (year_begin)
-            elif year_begin =='' and year_end != '':
-                if genre != 'Select' or lang != 'Select' or comp != 'Select':
-                    qy = " AND"
-                    query+=qy
-                query+= " YEAR(publication_date) BETWEEN YEAR('1970-01-01') AND %s" % (year_end)
-            if urut != 'Select':
-                query += " ORDER BY"
-            else:
-                query += ""
-            if urut == 'termahal-termurah':
-                query+=' price DESC, title'
-            elif urut == 'termurah-termahal':
-                query+=' price ASC, title'
-            elif urut == 'terbaru-terlama':
-                query+=' publication_date DESC, title'
-            elif urut == 'terlama-terbaru':
-                query+=' publication_date ASC, title'
-            elif urut == 'rating tertinggi-terendah':
-                query+=' rating DESC, title'
-            elif urut == 'rating terendah-tertinggi':
-                query+=' rating ASC, title'
-            
+        if 'user' in session:
+            srch_phrase = request.form['search-phrs']
             conn = get_db_connection()
             cursor = conn.cursor()
+            query = f"SELECT * FROM buku WHERE title LIKE '%{srch_phrase}%' OR author LIKE '%{srch_phrase}%' OR publisher LIKE '%{srch_phrase}%' OR publication_date LIKE '%{srch_phrase}%' OR genres LIKE '%{srch_phrase}%' OR language LIKE '%{srch_phrase}%'"
             cursor.execute(query)
             result = cursor.fetchall()
-            conn.close()
             books = []
             for entry in result:
                 record = {
@@ -402,69 +385,165 @@ def filter():
                     'rating': entry[12]
                 }
                 books.append(record)
+            conn.close()
             return render_template('home.html', datas = books, genre_list = genre_list(), lang_list = lang_list(), comp_list = comp_list())
-      
+        else:
+            return redirect(url_for('login'))
+
+@app.route('/home/filter/', methods=['POST'])
+def filter():
+    if request.method == 'POST':
+        if 'user' in session:
+            genre = request.form['genre']
+            lang = request.form['lang']
+            comp =  request.form['comp']
+            year_begin = request.form['pub-year-begin']
+            year_end = request.form['pub-year-end']
+            urut = request.form['urut-harga']
+            if genre == 'Select' and lang == 'Select' and comp == 'Select' and year_begin =='' and year_end == '' and urut == 'Select':
+                return redirect(url_for('home'))
+            else:
+                if genre != 'Select' or lang != 'Select' or year_begin != '' or year_end != '':
+                    query = 'SELECT * FROM buku WHERE'
+                else:
+                    query = 'SELECT * FROM buku'                
+                    
+                
+                if genre != 'Select':
+                    query+=" genres LIKE '%"+genre+"%'"
+                if lang != 'Select':
+                    if genre != 'Select':
+                        query+=" AND"
+                    query+=" language LIKE '%"+lang+"%'"
+                if comp != 'Select':
+                    if genre != 'Select' or lang != 'Select':
+                        query+=" AND"
+                    query+=" compatibility LIKE '%"+comp+"%'"
+                if year_begin !='' and year_end != '':
+                    if genre != 'Select' or lang != 'Select' or comp != 'Select':
+                        qy = " AND"
+                        query+=qy
+                    qy = " YEAR(publication_date) BETWEEN %s AND %s" % (year_begin, year_end)
+                    query+=qy
+                elif year_begin !='' and year_end == '':
+                    if genre != 'Select' or lang != 'Select' or comp != 'Select':
+                        qy = " AND"
+                        query+=qy
+                    query+= " YEAR(publication_date) BETWEEN %s AND YEAR(CURDATE())" % (year_begin)
+                elif year_begin =='' and year_end != '':
+                    if genre != 'Select' or lang != 'Select' or comp != 'Select':
+                        qy = " AND"
+                        query+=qy
+                    query+= " YEAR(publication_date) BETWEEN YEAR('1900-01-01') AND %s" % (year_end)
+                if urut != 'Select':
+                    query += " ORDER BY"
+                else:
+                    query += ""
+                if urut == 'termahal-termurah':
+                    query+=' price DESC, title'
+                elif urut == 'termurah-termahal':
+                    query+=' price ASC, title'
+                elif urut == 'terbaru-terlama':
+                    query+=' publication_date DESC, title'
+                elif urut == 'terlama-terbaru':
+                    query+=' publication_date ASC, title'
+                elif urut == 'rating tertinggi-terendah':
+                    query+=' rating DESC, title'
+                elif urut == 'rating terendah-tertinggi':
+                    query+=' rating ASC, title'
+                
+                conn = get_db_connection()
+                cursor = conn.cursor()
+                cursor.execute(query)
+                result = cursor.fetchall()
+                conn.close()
+                books = []
+                for entry in result:
+                    record = {
+                        'id': entry[0],
+                        'cover': entry[1],
+                        'title': entry[2],
+                        'description': entry[3],
+                        'author': entry[4],
+                        'publisher': entry[5],
+                        'price': 'IDR ' + '{:,}'.format(entry[11]) + '.00',
+                        'rating': entry[12]
+                    }
+                    books.append(record)
+                return render_template('home.html', datas = books, genre_list = genre_list(), lang_list = lang_list(), comp_list = comp_list())
+        else:
+            return redirect(url_for('login'))
 
 @app.route('/detail/<int:buku_id>/')
 def detail(buku_id):
-    datas = get_buku(buku_id)
-    return render_template('detail.html',datas=datas)
+    if 'user' in session:
+        datas = get_buku(buku_id)
+        return render_template('detail.html',datas=datas)
+    else:
+        return redirect(url_for('login'))
 
 @app.route('/admin/')
 def admin():
-    ratecount = countingrate()
-    dataBahasa = chartBahasa()
-    dataYear = chartYear()
-    dataGenre = chartGenre()
-    return render_template('admin.html', ratecount=ratecount, dataBahasa=dataBahasa, dataYear=dataYear, dataGenre=dataGenre)
-
+    if 'user' in session:
+        ratecount = countingrate()
+        dataBahasa = chartBahasa()
+        dataYear = chartYear()
+        dataGenre = chartGenre()
+        return render_template('admin.html', ratecount=ratecount, dataBahasa=dataBahasa, dataYear=dataYear, dataGenre=dataGenre)
+    else:
+        return redirect(url_for('login'))
+    
 @app.route('/admin/scrape/', methods=['GET','POST'])
 def scrape():
-    if request.method == 'GET':
-        query = 'SELECT * FROM log'
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute(query)
-        result = cursor.fetchall()
-        conn.close()
-        return render_template('scrape.html', log=result)
-    else:
-        url_list = request.form['link_textarea'].split(',')
-        report_list = []
-        for url in url_list:
-            report = []
-            report.append(url)
-            scrape_report = ''
-            add_db_report = ''
-            try:
-                book = scrape_gplay_books(url)
-                scrape_report = 'Success'
-                report.append(scrape_report)
-            except:
-                scrape_report = 'Failed'
-                report.append(scrape_report)
+    if 'user' in session:
+        if request.method == 'GET':
+            query = 'SELECT * FROM log'
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute(query)
+            result = cursor.fetchall()
+            conn.close()
+            return render_template('scrape.html', log=result)
+        else:
+            url_list = request.form['link_textarea'].split(',')
+            report_list = []
+            for url in url_list:
+                report = []
+                report.append(url)
+                scrape_report = ''
+                add_db_report = ''
+                try:
+                    book = scrape_gplay_books(url)
+                    scrape_report = 'Success'
+                    report.append(scrape_report)
+                except:
+                    scrape_report = 'Failed'
+                    report.append(scrape_report)
 
-            try:
-                conn = get_db_connection()
-                cursor = conn.cursor()
-                cursor.execute('INSERT INTO buku (cover,title,description,author,publisher,publication_date,genres,language,pages,compatibility,price,rating,total_rating,status) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,"visible")', (book['Cover'],book['Title'],book['Description'],book['Author'],book['Publisher'],book['Publication Date'],book['Genres'],book['Language'],book['Pages'],book['Compatibility'],book['Price'],book['Rating'],book['Number of Reviewer']))
+                try:
+                    conn = get_db_connection()
+                    cursor = conn.cursor()
+                    cursor.execute('INSERT INTO buku (cover,title,description,author,publisher,publication_date,genres,language,pages,compatibility,price,rating,total_rating,status) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,"visible")', (book['Cover'],book['Title'],book['Description'],book['Author'],book['Publisher'],book['Publication Date'],book['Genres'],book['Language'],book['Pages'],book['Compatibility'],book['Price'],book['Rating'],book['Number of Reviewer']))
+                    conn.commit()
+                    conn.close()
+                    add_db_report = 'Success'
+                    report.append(add_db_report)
+                except:
+                    add_db_report = 'Failed'
+                    report.append(add_db_report)
+                report_list.append(report)
+                
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            for rep in report_list:
+                cursor.execute('INSERT INTO log (link, scrape_status, add_to_database_status) VALUES (%s, %s, %s)', (rep[0], rep[1], rep[2]))
                 conn.commit()
-                conn.close()
-                add_db_report = 'Success'
-                report.append(add_db_report)
-            except:
-                add_db_report = 'Failed'
-                report.append(add_db_report)
-            report_list.append(report)
+            conn.close()
             
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        for rep in report_list:
-            cursor.execute('INSERT INTO log (link, scrape_status, add_to_database_status) VALUES (%s, %s, %s)', (rep[0], rep[1], rep[2]))
-            conn.commit()
-        conn.close()
-        
-        return redirect(url_for('scrape'))
+            return redirect(url_for('scrape'))
+    else:
+        return redirect(url_for('login'))
+    
 
 '''@app.route('/admin/scrape/report/', methods=['POST'])
 def scrape_run():
@@ -489,116 +568,126 @@ def scrape_run():
 
 @app.route('/admin/book_menu/', methods = ['GET', 'POST'])
 def admin_book_menu():
-    if request.method == 'POST':
-        if 'delete_button' in request.form:
-            book_title = request.form['delete_button']
-            conn = get_db_connection()
-            cursor = conn.cursor()
-            cursor.execute('DELETE FROM buku WHERE title=%s', (book_title,))
-            conn.commit()
-            conn.close()
-            return redirect(url_for('admin_book_menu'))
-        elif 'import_button' in request.form:
-            f = request.files['file-to-import']
-            f.save('temp/' + f.filename)
-            file = open('temp/' + f.filename)
-            file_reader = csv.reader(file)
-            file_data = list(file_reader)
-            for data in file_data:
+    if 'user' in session:
+        if request.method == 'POST':
+            if 'delete_button' in request.form:
+                book_title = request.form['delete_button']
                 conn = get_db_connection()
                 cursor = conn.cursor()
-                cursor.execute('INSERT INTO buku (cover,title,description,author,publisher,publication_date,genres,language,pages,compatibility,price,rating,total_rating) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)', (data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9], data[10], data[11], data[12]))
+                cursor.execute('DELETE FROM buku WHERE title=%s', (book_title,))
                 conn.commit()
                 conn.close()
-            file.close()
-            os.remove('temp/' + f.filename)
-            return redirect(url_for('admin_book_menu'))
-        elif 'export_button' in request.form:
+                return redirect(url_for('admin_book_menu'))
+            elif 'import_button' in request.form:
+                f = request.files['file-to-import']
+                f.save('temp/' + f.filename)
+                file = open('temp/' + f.filename)
+                file_reader = csv.reader(file)
+                file_data = list(file_reader)
+                for data in file_data:
+                    conn = get_db_connection()
+                    cursor = conn.cursor()
+                    cursor.execute('INSERT INTO buku (cover,title,description,author,publisher,publication_date,genres,language,pages,compatibility,price,rating,total_rating) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)', (data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9], data[10], data[11], data[12]))
+                    conn.commit()
+                    conn.close()
+                file.close()
+                os.remove('temp/' + f.filename)
+                return redirect(url_for('admin_book_menu'))
+            elif 'export_button' in request.form:
+                conn = get_db_connection()
+                cursor = conn.cursor()
+                cursor.execute('SELECT cover,title,description,author,publisher,publication_date,genres,language,pages,compatibility,price,rating,total_rating FROM buku')
+                result = cursor.fetchall()
+                conn.close()
+
+                books = []
+                for entry in result:
+                    book_data = []
+                    for data in entry:
+                        book_data.append(data)
+                    books.append(book_data)
+                
+                f = open('temp/export_books.csv', "w+")
+                f.close()
+
+                file = open('temp/export_books.csv', 'w', newline='')
+                file_writer = csv.writer(file)
+                for book_data in books:
+                    try:
+                        file_writer.writerow(book_data)
+                    except:
+                        continue
+                file.close()
+                return send_from_directory('temp', 'export_books.csv', as_attachment=True)
+                
+
+        else:
             conn = get_db_connection()
             cursor = conn.cursor()
-            cursor.execute('SELECT cover,title,description,author,publisher,publication_date,genres,language,pages,compatibility,price,rating,total_rating FROM buku')
+            cursor.execute('SELECT title, author, genres, publisher, publication_date, status FROM buku')
             result = cursor.fetchall()
             conn.close()
-
-            books = []
+            data = []
             for entry in result:
-                book_data = []
-                for data in entry:
-                    book_data.append(data)
-                books.append(book_data)
-            
-            f = open('temp/export_books.csv', "w+")
-            f.close()
-
-            file = open('temp/export_books.csv', 'w', newline='')
-            file_writer = csv.writer(file)
-            for book_data in books:
-                try:
-                    file_writer.writerow(book_data)
-                except:
-                    continue
-            file.close()
-            return send_from_directory('temp', 'export_books.csv', as_attachment=True)
-            
-
+                book = {
+                    'title': entry[0],
+                    'author': entry[1],
+                    'genres': entry[2],
+                    'publisher': entry[3],
+                    'publication_date': entry[4],
+                    'status': entry[5]
+                }
+                data.append(book)
+            return render_template('admin_book_menu.html', book_data = data)
     else:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute('SELECT title, author, genres, publisher, publication_date, status FROM buku')
-        result = cursor.fetchall()
-        conn.close()
-        data = []
-        for entry in result:
-            book = {
-                'title': entry[0],
-                'author': entry[1],
-                'genres': entry[2],
-                'publisher': entry[3],
-                'publication_date': entry[4],
-                'status': entry[5]
-            }
-            data.append(book)
-        return render_template('admin_book_menu.html', book_data = data)
+        return redirect(url_for('login'))
 
 @app.route('/admin/book_menu/edit_book/<book_title>/', methods=['GET', 'POST'])
 def admin_edit_book(book_title):
-    if request.method == 'GET':
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute('SELECT * FROM buku WHERE title=%s', (book_title,))
-        result = cursor.fetchone()
-        conn.close()
-        return render_template('admin_edit_book.html', book_data = result)
+    if 'user' in session:
+        if request.method == 'GET':
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute('SELECT * FROM buku WHERE title=%s', (book_title,))
+            result = cursor.fetchone()
+            conn.close()
+            return render_template('admin_edit_book.html', book_data = result)
+        else:
+            new_data = {
+                'cover': request.form['cvr'],
+                'title': request.form['ttl'],
+                'desc': request.form['dsc'],
+                'author': request.form['auth'],
+                'publisher': request.form['pub'],
+                'publish date': request.form['pub date'],
+                'genres': request.form['gen'],
+                'language': request.form['lang'],
+                'pages': request.form['pg'],
+                'compatibility': request.form['comp'],
+                'price': request.form['prc'],
+                'rating': request.form['rtg'],
+                'num of review': request.form['num rev'],
+                'status':request.form['status']
+            }
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute('SELECT id FROM buku WHERE title=%s', (book_title,))
+            book_id = str(cursor.fetchone()[0])
+            cursor.execute('UPDATE buku SET cover=%s, title=%s, description=%s, author=%s, publisher=%s, publication_date=%s, genres=%s, language=%s, pages=%s, compatibility=%s, price=%s, rating=%s, total_rating=%s, status=%s WHERE id=%s', (new_data['cover'], new_data['title'], new_data['desc'], new_data['author'], new_data['publisher'], new_data['publish date'], new_data['genres'], new_data['language'], new_data['pages'], new_data['compatibility'], new_data['price'], new_data['rating'], new_data['num of review'], new_data['status'], book_id))
+            conn.commit()
+            conn.close()
+            return redirect(url_for('admin_edit_book', book_title=new_data['title']))
     else:
-        new_data = {
-            'cover': request.form['cvr'],
-            'title': request.form['ttl'],
-            'desc': request.form['dsc'],
-            'author': request.form['auth'],
-            'publisher': request.form['pub'],
-            'publish date': request.form['pub date'],
-            'genres': request.form['gen'],
-            'language': request.form['lang'],
-            'pages': request.form['pg'],
-            'compatibility': request.form['comp'],
-            'price': request.form['prc'],
-            'rating': request.form['rtg'],
-            'num of review': request.form['num rev'],
-            'status':request.form['status']
-        }
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute('SELECT id FROM buku WHERE title=%s', (book_title,))
-        book_id = str(cursor.fetchone()[0])
-        cursor.execute('UPDATE buku SET cover=%s, title=%s, description=%s, author=%s, publisher=%s, publication_date=%s, genres=%s, language=%s, pages=%s, compatibility=%s, price=%s, rating=%s, total_rating=%s, status=%s WHERE id=%s', (new_data['cover'], new_data['title'], new_data['desc'], new_data['author'], new_data['publisher'], new_data['publish date'], new_data['genres'], new_data['language'], new_data['pages'], new_data['compatibility'], new_data['price'], new_data['rating'], new_data['num of review'], new_data['status'], book_id))
-        conn.commit()
-        conn.close()
-        return redirect(url_for('admin_edit_book', book_title=new_data['title']))
+        return redirect(url_for('login'))
 
 @app.route('/admin/dashboard/')
 def admin_dashboard():
-    ratecount = countingrate()
-    dataBahasa = chartBahasa()
-    dataYear = chartYear()
-    dataGenre = chartGenre()
-    return render_template('admin_dashboard.html', ratecount=ratecount, dataBahasa=dataBahasa, dataYear=dataYear, dataGenre=dataGenre)
+    if 'user' in session:
+        ratecount = countingrate()
+        dataBahasa = chartBahasa()
+        dataYear = chartYear()
+        dataGenre = chartGenre()
+        return render_template('admin_dashboard.html', ratecount=ratecount, dataBahasa=dataBahasa, dataYear=dataYear, dataGenre=dataGenre)
+    else:
+        return redirect(url_for('login'))
+    
