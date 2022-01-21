@@ -31,6 +31,10 @@ def get_buku(buku_id):
             'author': entry[4],
             'publisher': entry[5],
             'date': entry[6],
+            'genres' : entry[7],
+            'language' : entry[8],
+            'rating' : entry[12],
+            'total_rating' : entry[13]
     }
     conn.close()
     if datas is None:
