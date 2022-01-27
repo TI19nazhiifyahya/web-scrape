@@ -8,7 +8,7 @@
         <h4>Filter</h4>
     </div>
 
-    <form action="{{ url_for('filter') }}" method="POST">
+    <form action="{{ url_for('filter') }}" method="GET">
         <div class="form-group">
             <label for="genre-f">Genre: </label>
             <select class="form-control" name="genre" id="genre-f">
@@ -70,10 +70,10 @@
 {% endblock %}
 
 {% block content %}
-<form action="{{ url_for('search') }}" method="POST">
+<form action="{{ url_for('search') }}" method="GET">
     <div class="row">
         <div class="col-md-4 offset-md-7">
-            <input class="form-control" type="search" name="search-phrs" placeholder="Ketik Kata Kunci">
+            <input class="form-control" type="search" name="query" placeholder="Ketik Kata Kunci">
         </div>
         <div class="">
             <button class="btn btn-info" type="submit">Cari</button>

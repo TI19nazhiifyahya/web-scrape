@@ -366,11 +366,11 @@ def home():
     conn.close()
     return render_template('home.html', datas=datas, genre_list = genre_list(), lang_list = lang_list(), comp_list = comp_list())
 
-@app.route('/home/search/', methods=['POST'])
+@app.route('/home/search', methods=['GET'])
 def search():
-    if request.method == 'POST':
+    if request.method == 'GET':
         if 'user' in session:
-            srch_phrase = request.form['search-phrs']
+            srch_phrase = request.args.get("query")
             conn = get_db_connection()
             cursor = conn.cursor()
             query = f"SELECT * FROM buku WHERE title LIKE '%{srch_phrase}%' OR author LIKE '%{srch_phrase}%' OR publisher LIKE '%{srch_phrase}%' OR publication_date LIKE '%{srch_phrase}%' OR genres LIKE '%{srch_phrase}%' OR language LIKE '%{srch_phrase}%'"
@@ -394,16 +394,16 @@ def search():
         else:
             return redirect(url_for('login'))
 
-@app.route('/home/filter/', methods=['POST'])
+@app.route('/home/filter', methods=['GET'])
 def filter():
-    if request.method == 'POST':
+    if request.method == 'GET':
         if 'user' in session:
-            genre = request.form['genre']
-            lang = request.form['lang']
-            comp =  request.form['comp']
-            year_begin = request.form['pub-year-begin']
-            year_end = request.form['pub-year-end']
-            urut = request.form['urut-harga']
+            genre = request.args.get("genre")
+            lang = request.args.get("lang")
+            comp = request.args.get("comp")
+            year_begin = request.args.get("pub-year-begin")
+            year_end = request.args.get("pub-year-end")
+            urut = request.args.get("urut-harga")
             if genre == 'Select' and lang == 'Select' and comp == 'Select' and year_begin =='' and year_end == '' and urut == 'Select':
                 return redirect(url_for('home'))
             else:
