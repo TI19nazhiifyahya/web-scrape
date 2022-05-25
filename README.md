@@ -1,5 +1,5 @@
-# web-scrape
-web-scrape is a repository for subject Aplikasi Web
+# book-catalogue
+Repository for Aplikasi Web subject involving web scraping.
 
 ## contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
